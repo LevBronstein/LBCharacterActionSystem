@@ -11,16 +11,16 @@ public enum LBActionStates
 
 public enum LBActionActivationTypes
 {
-	Mandatory, // Action is activated by a call
-	ConditionalMandatory, // Action is activated by a call, checking conditions
+	Manual, // Action is activated by a call
+	ConditionalManual, // Action is activated by a call, checking conditions
 	Automatic, 
 	ConditionalAutomatic, // Action is activated when conditions are met
 }
 
 public enum LBActionDectivationTypes
 {
-	Mandatory, // Action is stopped by a call
-	ConditionalMandatory, // Action is stopped by a call, checking conditions
+	Manual, // Action is stopped by a call
+	ConditionalManual, // Action is stopped by a call, checking conditions
 	Automatic,
 	ConditionalAutomatic
 }
@@ -29,8 +29,8 @@ public abstract class LBAction : ScriptableObject
 {
 	protected GameObject parent = null;
 
-	public LBActionActivationTypes ActionActivation = LBActionActivationTypes.Mandatory;
-	public LBActionDectivationTypes ActionDeactivation = LBActionDectivationTypes.Mandatory;
+	public LBActionActivationTypes ActionActivation = LBActionActivationTypes.Manual;
+	public LBActionDectivationTypes ActionDeactivation = LBActionDectivationTypes.Manual;
 
 	protected LBActionStates action_state = LBActionStates.Inactive;
 
@@ -52,12 +52,30 @@ public abstract class LBAction : ScriptableObject
 		}
 	}
 
+	protected virtual bool CheckActivationConditions()
+	{
+		return true;
+	}
+
 	public virtual bool CanActivateAction ()
 	{
-		if (action_state == LBActionStates.Inactive)
-			return true;
-		else
-			return false;
+		if (ActionActivation == LBActionActivationTypes.Manual || ActionActivation == LBActionActivationTypes.Automatic) 
+		{
+			if (action_state == LBActionStates.Inactive)
+				return true;
+			else
+				return false;
+		}
+
+		if (ActionActivation == LBActionActivationTypes.ConditionalManual || ActionActivation == LBActionActivationTypes.ConditionalAutomatic)
+		{	
+			if (action_state == LBActionStates.Inactive)
+				return CheckActivationConditions();
+			else
+				return false;
+		}
+
+		return false;
 	}
 
 	public virtual void ActivateAction ()
@@ -68,12 +86,30 @@ public abstract class LBAction : ScriptableObject
 		}
 	}
 
+	protected virtual bool CheckDeactivationConditions()
+	{
+		return true;
+	}
+
 	public virtual bool CanDeactivateAction ()
 	{
-		if (action_state == LBActionStates.Active)
-			return true;
-		else
-			return false;
+		if (ActionDeactivation == LBActionDectivationTypes.Manual || ActionDeactivation ==LBActionDectivationTypes.Automatic) 
+		{
+			if (action_state == LBActionStates.Active)
+				return true;
+			else
+				return false;
+		}
+
+		if (ActionDeactivation == LBActionDectivationTypes.ConditionalManual || ActionDeactivation ==LBActionDectivationTypes.ConditionalAutomatic)
+		{	
+			if (action_state == LBActionStates.Active)
+				return CheckDeactivationConditions();
+			else
+				return false;
+		}
+
+		return false;
 	}
 
 	public virtual void DeactivateAction ()
