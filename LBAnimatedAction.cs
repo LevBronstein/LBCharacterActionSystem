@@ -3,34 +3,36 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-
-[CreateAssetMenu (fileName = "NewAnimatedAction", menuName = "LBActionSystem/AnimatedAction")]
-public class LBAnimatedAction: LBAction
+namespace LBActionSystem
 {
-	public string Animation;
-
-	protected override bool Init(GameObject parentgameobject)
+	//[CreateAssetMenu (fileName = "NewAnimatedAction", menuName = "LBActionSystem/AnimatedAction")]
+	public abstract class LBAnimatedAction: LBAction
 	{
-		if (!base.Init(parentgameobject))
-			return false;
+		public string Animation;
 
-		Animator anm;
-
-		anm = parent.GetComponent<Animator> ();
-
-		return true;
+//		public override bool Init(GameObject parentgameobject)
+//		{
+//			if (!base.Init(parentgameobject))
+//				return false;
+//
+//			Animator anm;
+//
+//			anm = parent.GetComponent<Animator> ();
+//
+//			return true;
+//		}
 	}
-}
 
-[CustomEditor(typeof(LBAnimatedAction))]
-public class LBAnimatedActionCustomEditor: Editor
-{
-	public override void OnInspectorGUI ()
+	[CustomEditor(typeof(LBAnimatedAction))]
+	public class LBAnimatedActionCustomEditor: Editor
 	{
-		base.OnInspectorGUI ();
+		public override void OnInspectorGUI ()
+		{
+			base.OnInspectorGUI ();
 
-		EditorGUILayout.BeginHorizontal ();
-		EditorGUILayout.Popup("MyDropdown", 0,new string [] {"one", "two", "three"},EditorStyles.popup);
-		EditorGUILayout.EndHorizontal ();
+			EditorGUILayout.BeginHorizontal ();
+			EditorGUILayout.Popup("MyDropdown", 0,new string [] {"one", "two", "three"},EditorStyles.popup);
+			EditorGUILayout.EndHorizontal ();
+		}
 	}
 }
