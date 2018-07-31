@@ -33,6 +33,10 @@ namespace LBActionSystem
 		ConditionalAutomatic
 	}
 
+	public class LBActionEventArgs : EventArgs
+	{
+	}
+
 	public abstract class LBAction : ScriptableObject
 	{
 		protected GameObject parent = null;
@@ -42,6 +46,17 @@ namespace LBActionSystem
 
 		public LBActionActivationTypes ActionActivation = LBActionActivationTypes.Manual;
 		public LBActionDectivationTypes ActionDeactivation = LBActionDectivationTypes.Manual;
+
+		/// <summary>
+		/// Occurs when this action is activated.
+		/// </summary>
+		public event EventHandler<LBActionEventArgs> ActionActivated;
+		protected LBActionEventArgs ActionActivatedArgs;
+		/// <summary>
+		/// Occurs when this action is deactivated.
+		/// </summary>
+		public event EventHandler<LBActionEventArgs> ActionDeactivated;
+		protected LBActionEventArgs ActionDeactivatedArgs;
 
 		protected LBActionStates action_state = LBActionStates.Inactive;
 
@@ -108,6 +123,7 @@ namespace LBActionSystem
 		{			
 			if (CanActivateAction ()) {
 				action_state = LBActionStates.Active;
+				RaiseEvenet_OnActionActivated ();
 			}
 		}
 
@@ -139,11 +155,32 @@ namespace LBActionSystem
 		{
 			if (CanDeactivateAction ()) {
 				action_state = LBActionStates.Inactive;
+				RaiseEvenet_OnActionDeactivated ();
 			}
 		}
 
 		public virtual void Tick ()
 		{
+		}
+
+		protected void RaiseEvenet_OnActionActivated()
+		{
+			EventHandler<LBActionEventArgs> handler = ActionActivated;
+
+			if (handler != null && ActionActivatedArgs != null) 
+			{
+				handler (this, ActionActivatedArgs);
+			}
+		}
+
+		protected void RaiseEvenet_OnActionDeactivated()
+		{
+			EventHandler<LBActionEventArgs> handler = ActionDeactivated;
+
+			if (handler != null && ActionDeactivatedArgs != null) 
+			{
+				handler (this, ActionDeactivatedArgs);
+			}
 		}
 	}
 

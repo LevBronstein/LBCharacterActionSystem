@@ -179,34 +179,34 @@ namespace LBActionSystem
 			}
 		}
 
-		LBAction FindSwitchableAction(LBTransitiveAction act)
-		{
-			int i, j;
-
-			LBAction[] active;
-
-			active = ActiveActions;
-
-			for (i = 0; i < active.Length; i++) 
-			{
-				for (j = 0; j < act.TransfersFrom.Length; j++) 
-				{
-					if (act.TransfersFrom [j] == active [i].ActionName) 
-					{
-						if (act.TransferType == LBActionTransitTypes.Interrupt)
-							return active [i];
-						
-						if (act.TransferType == LBActionTransitTypes.Switch) 
-						{
-							if (active [i].CanDeactivateAction ())
-								return active [i];
-						}
-					}
-				}
-			}
-
-			return null;
-		}
+//		LBAction FindSwitchableAction(LBTransitiveAction act)
+//		{
+//			int i, j;
+//
+//			LBAction[] active;
+//
+//			active = ActiveActions;
+//
+//			for (i = 0; i < active.Length; i++) 
+//			{
+//				for (j = 0; j < act.TransfersFrom.Length; j++) 
+//				{
+//					if (act.TransfersFrom [j] == active [i].ActionName) 
+//					{
+//						if (act.TransferType == LBActionTransitTypes.Interrupt)
+//							return active [i];
+//						
+//						if (act.TransferType == LBActionTransitTypes.Switch) 
+//						{
+//							if (active [i].CanDeactivateAction ())
+//								return active [i];
+//						}
+//					}
+//				}
+//			}
+//
+//			return null;
+//		}
 			
 		LBAction FindAction(string action)
 		{
