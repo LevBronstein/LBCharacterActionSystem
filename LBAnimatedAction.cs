@@ -5,34 +5,90 @@ using UnityEditor;
 
 namespace LBActionSystem
 {
-	//[CreateAssetMenu (fileName = "NewAnimatedAction", menuName = "LBActionSystem/AnimatedAction")]
-	public abstract class LBAnimatedAction: LBAction
+	public enum LBActionAnimationTypes
 	{
-		public string Animation;
-
-//		public override bool Init(GameObject parentgameobject)
-//		{
-//			if (!base.Init(parentgameobject))
-//				return false;
-//
-//			Animator anm;
-//
-//			anm = parent.GetComponent<Animator> ();
-//
-//			return true;
-//		}
+		Playback, // Transit only after action has ended
+		Loop, // Transit during action exectution
 	}
 
-	[CustomEditor(typeof(LBAnimatedAction))]
-	public class LBAnimatedActionCustomEditor: Editor
+	[CreateAssetMenu (fileName = "NewAnimatedAction", menuName = "LBActionSystem/AnimatedAction")]
+	public class LBAnimatedAction : LBTransitiveAction
 	{
-		public override void OnInspectorGUI ()
-		{
-			base.OnInspectorGUI ();
+		protected Animator animator = null;
 
-			EditorGUILayout.BeginHorizontal ();
-			EditorGUILayout.Popup("MyDropdown", 0,new string [] {"one", "two", "three"},EditorStyles.popup);
-			EditorGUILayout.EndHorizontal ();
+		public string AnimationName = string.Empty;
+		public int AnimationLayer = 0;
+		public float AnimationBlendTime = 0.1f;
+		public LBActionAnimationTypes AnimationType = LBActionAnimationTypes.Playback;
+
+		protected LBAnimatedAction()
+		{}
+
+		public override bool Init (GameObject parentgameobject, LBActionManager manager)
+		{
+			if (!base.Init(parentgameobject, manager))
+				return false;
+
+			animator = parentgameobject.GetComponent<Animator> ();
+
+			if (animator == null) 
+			{
+				ReportProblem ("animator in " + parentgameobject.ToString () + " not found!");
+				return false;
+			}
+
+			return true;
+		}
+
+		public override bool CanDeactivateAction (bool _isinternal)
+		{
+//			if (!base.CanDeactivateAction (true))
+//				return false;
+//
+//			if (AnimationType == LBActionAnimationTypes.Playback) 
+//			{
+//				if (ActionDeactivation == LBActionDectivationTypes.Automatic || ActionDeactivation == LBActionDectivationTypes.ConditionalAutomatic) 
+//				{
+//					if (animator.GetCurrentAnimatorStateInfo (AnimationLayer).normalizedTime < 1)
+//						return false;
+//					else
+//						return true;
+//				}
+//			}
+
+			return false;
+		}
+
+
+		protected override bool InputTransferAction(LBAction old_action)
+		{
+			if (!base.InputTransferAction (old_action))
+				return false;
+
+			if (AnimationName != string.Empty)
+				animator.CrossFade(AnimationName, AnimationBlendTime);
+
+			return true;
+		}
+
+		protected override bool CanOutputTransferAction(LBAction new_action, LBActionTransitTypes transit = LBActionTransitTypes.Switch)
+		{
+			if (!base.CanDeactivateAction (true)) // как быть с автоматически и вручную активирумыми действиями?
+				return false; // if the action is deactivated or inactive, or it has some conditions
+
+			if (transit == LBActionTransitTypes.Interrupt)
+				return CheckInterruptAction ();
+			else
+				return CheckSwitchAction ();
+		}
+
+		public override void Tick ()
+		{
+//			if (AnimationType == LBActionAnimationTypes.Playback && (ActionDeactivation == LBActionDectivationTypes.Automatic || ActionDeactivation == LBActionDectivationTypes.ConditionalAutomatic))
+//			{
+//				
+//			}
+			//animator.GetCurrentAnimatorClipInfo()[0].clip.
 		}
 	}
 }

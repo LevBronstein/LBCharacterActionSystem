@@ -12,27 +12,39 @@ namespace LBActionSystem
 		Disabled
 	}
 
-	public enum LBActionActivationTypes
+	/// <summary>
+	/// This enum defines activation procedure for each <c>LBAction</c> instance. This value 
+	/// </summary>
+	[Flags]
+	public enum LBActionActivationTypes : byte
 	{
-		Manual,
-		// Action is activated by a call
-		ConditionalManual,
-		// Action is activated by a call, checking conditions
-		Automatic,
-		ConditionalAutomatic,
-		// Action is activated when conditions are met
+		/// <summary>
+		/// An action can be activated (deactivated) by an external call. I.e. from an <c>LBActionManager</c> instance, which contains this action.
+		/// </summary>
+		Internal = 1,										//00000001
+		/// <summary>
+		/// An action can be activated (deactivated) in automatic mode, for example, by itslef.
+		/// </summary>
+		External = 2, 										//00000010
+		/// <summary>
+		/// An action can be activated (deactivated) both ways.
+		/// </summary>
+		InternalOrExternal = 3, 							//00000011
+		/// <summary>
+		/// An action can be activated (deactivated) by an external call, checking conditions, which are defined by <c>CheckActivationConditions</c>.
+		/// </summary>
+		ConditionalInternal = 129,							//10000001
+		/// <summary>
+		/// An action can be activated (deactivated) in automatic mode, checking conditions. This particular variant may mean that this action is activated (deactivated) by itself.
+		/// when some condition is met. 
+		/// </summary>
+		ConditionalExternal = 130,							//10000010
+		/// <summary>
+		/// An action can be activated (deactivated) both ways, however, conditions should be checked.
+		/// </summary>
+		ConditionalInternalOrExternal = 131					//10000011
 	}
-
-	public enum LBActionDectivationTypes
-	{
-		Manual,
-		// Action is stopped by a call
-		ConditionalManual,
-		// Action is stopped by a call, checking conditions
-		Automatic,
-		ConditionalAutomatic
-	}
-
+			
 	public class LBActionEventArgs : EventArgs
 	{
 	}
@@ -44,26 +56,34 @@ namespace LBActionSystem
 
 		public string ActionName = "Dummy_Action";
 
-		public LBActionActivationTypes ActionActivation = LBActionActivationTypes.Manual;
-		public LBActionDectivationTypes ActionDeactivation = LBActionDectivationTypes.Manual;
+		public LBActionActivationTypes ActionActivation = LBActionActivationTypes.External;
+		public LBActionActivationTypes ActionDeactivation = LBActionActivationTypes.External;
 
 		/// <summary>
 		/// Occurs when this action is activated.
 		/// </summary>
 		public event EventHandler<LBActionEventArgs> ActionActivated;
+
 		protected LBActionEventArgs ActionActivatedArgs;
+
 		/// <summary>
 		/// Occurs when this action is deactivated.
 		/// </summary>
 		public event EventHandler<LBActionEventArgs> ActionDeactivated;
+
 		protected LBActionEventArgs ActionDeactivatedArgs;
 
 		protected LBActionStates action_state = LBActionStates.Inactive;
 
-		public LBAction ()
+		public LBAction()
 		{}
-			
-		public LBAction (string _name, LBActionActivationTypes _activation, LBActionDectivationTypes _deactivation)
+
+		public LBAction (string _name)
+		{
+			ActionName = _name;
+		}
+
+		public LBAction (string _name, LBActionActivationTypes _activation, LBActionActivationTypes _deactivation)
 		{
 			ActionName = _name;
 			ActionActivation = _activation;
@@ -75,23 +95,46 @@ namespace LBActionSystem
 			return null;
 		}
 
-		public virtual bool Init (GameObject parentgameobject, LBActionManager manager)
+		public static LBAction Default ()
 		{
-			if (parent == null || manager == null)
+			return null;
+		}
+
+		public virtual bool Init (GameObject _parent, LBActionManager _manager)
+		{
+			if (_parent == null || _manager == null)
+			{
+				ReportProblem ("parent or manager in " + _parent.ToString () + " cannot be set!");
 				return false;
+			}
 
-			parent = parentgameobject;
-
-
+			parent = _parent;
+			manager = _manager;
 
 			return true;
 		}
 
-		public LBActionStates ActionState 
+		public LBActionStates ActionState
 		{
 			get 
 			{
 				return action_state;
+			}
+		}
+
+		public GameObject Parent
+		{
+			get
+			{
+				return parent;
+			}
+		}
+
+		public LBActionManager Manager
+		{
+			get 
+			{
+				return manager;
 			}
 		}
 
@@ -100,31 +143,45 @@ namespace LBActionSystem
 			return true;
 		}
 
-		public virtual bool CanActivateAction ()
+		public virtual bool CanActivateAction (bool _isinternal)
 		{
-			if (ActionActivation == LBActionActivationTypes.Manual || ActionActivation == LBActionActivationTypes.Automatic) {
+			if ((_isinternal && ((ActionActivation & LBActionActivationTypes.Internal) != 0)) || (!_isinternal && ((ActionActivation & LBActionActivationTypes.External) != 0)))
+			{
+				//if activation is performed from inside and it is internally-activated or activation is performed from outside and it is externally-activated
 				if (action_state == LBActionStates.Inactive)
-					return true;
-				else
-					return false;
-			}
-
-			if (ActionActivation == LBActionActivationTypes.ConditionalManual || ActionActivation == LBActionActivationTypes.ConditionalAutomatic) {	
-				if (action_state == LBActionStates.Inactive)
-					return CheckActivationConditions ();
-				else
-					return false;
+				{
+					//if action state is inactive (ready to activate)
+					if ((((byte)ActionActivation & (byte)128) != 0 && CheckActivationConditions ()) || ((byte)ActionActivation & (byte)128) == 0)
+						//if action is non-conditional or conditions are met
+						return true;
+				}
 			}
 
 			return false;
 		}
 
-		public virtual void ActivateAction ()
-		{			
-			if (CanActivateAction ()) {
+		protected bool ActivateActionInternal()
+		{
+			if (CanActivateAction (true))
+			{
 				action_state = LBActionStates.Active;
 				RaiseEvenet_OnActionActivated ();
+				return true;
 			}
+			else
+				return false;
+		}
+
+		public virtual bool ActivateAction ()
+		{			
+			if (CanActivateAction (false))
+			{
+				action_state = LBActionStates.Active;
+				RaiseEvenet_OnActionActivated ();
+				return true;
+			}
+			else
+				return false;
 		}
 
 		protected virtual bool CheckDeactivationConditions ()
@@ -132,74 +189,118 @@ namespace LBActionSystem
 			return true;
 		}
 
-		public virtual bool CanDeactivateAction ()
+		public virtual bool CanDeactivateAction (bool _isinternal)
 		{
-			if (ActionDeactivation == LBActionDectivationTypes.Manual || ActionDeactivation == LBActionDectivationTypes.Automatic) {
+			if ((_isinternal && ((ActionDeactivation & LBActionActivationTypes.Internal) != 0)) || (!_isinternal && ((ActionDeactivation & LBActionActivationTypes.External) != 0)))
+			{
+				//if activation is performed from inside and it is internally-activated or activation is performed from outside and it is externally-activated
 				if (action_state == LBActionStates.Active)
-					return true;
-				else
-					return false;
-			}
-
-			if (ActionDeactivation == LBActionDectivationTypes.ConditionalManual || ActionDeactivation == LBActionDectivationTypes.ConditionalAutomatic) {	
-				if (action_state == LBActionStates.Active)
-					return CheckDeactivationConditions ();
-				else
-					return false;
+				{
+					//if action state is inactive (ready to activate)
+					if ((((byte)ActionDeactivation & (byte)128) != 0 && CheckDeactivationConditions ()) || ((byte)ActionDeactivation & (byte)128) == 0)
+						//if action is non-conditional or conditions are met
+						return true;
+				}
 			}
 
 			return false;
 		}
 
-		public virtual void DeactivateAction ()
+		protected bool DeactivateActionInternal()
 		{
-			if (CanDeactivateAction ()) {
+			if (CanDeactivateAction (true))
+			{
 				action_state = LBActionStates.Inactive;
 				RaiseEvenet_OnActionDeactivated ();
+				return true;
 			}
+			else
+				return false;
+		}
+
+		public virtual bool DeactivateAction ()
+		{
+			if (CanDeactivateAction (false))
+			{
+				action_state = LBActionStates.Inactive;
+				RaiseEvenet_OnActionDeactivated ();
+				return true;
+			}
+
+			return false;
 		}
 
 		public virtual void Tick ()
 		{
 		}
 
-		protected void RaiseEvenet_OnActionActivated()
+		protected void RaiseEvenet_OnActionActivated ()
 		{
 			EventHandler<LBActionEventArgs> handler = ActionActivated;
 
-			if (handler != null && ActionActivatedArgs != null) 
+			if (handler != null && ActionActivatedArgs != null)
 			{
 				handler (this, ActionActivatedArgs);
 			}
 		}
 
-		protected void RaiseEvenet_OnActionDeactivated()
+		protected void RaiseEvenet_OnActionDeactivated ()
 		{
 			EventHandler<LBActionEventArgs> handler = ActionDeactivated;
 
-			if (handler != null && ActionDeactivatedArgs != null) 
+			if (handler != null && ActionDeactivatedArgs != null)
 			{
 				handler (this, ActionDeactivatedArgs);
 			}
 		}
+
+		protected void ReportProblem (string message)
+		{
+			Debug.LogWarning ("Problem in action " + ActionName + " (" + this.GetType () + ") " + message);
+		}
+
+		public override string ToString ()
+		{
+			return string.Format ("[{0} ({1}): \n Action activation type is {2} \n" +
+				"Action deactivation type is {3} \n Action is currently {4}]", ActionName, this.GetType().Name, ActionActivation, ActionDeactivation, ActionState);
+		}
 	}
 
-	public class DummyAction : LBAction
+	[CreateAssetMenu (fileName = "NewDummyAction", menuName = "LBActionSystem/DummyAction")]
+	public class LBDummyAction : LBAction
 	{
-		public DummyAction()
+		public LBDummyAction (string _name) :
+		base (_name)
+		{}
+
+		public LBDummyAction (string _name, LBActionActivationTypes _activation, LBActionActivationTypes _deactivation) :
+		base (_name, _activation, _deactivation)
 		{
-			ActionActivation = LBActionActivationTypes.Manual;
-			ActionDeactivation = LBActionDectivationTypes.Manual;
-			action_state = LBActionStates.Disabled;
+			action_state = LBActionStates.Inactive;
 		}
 
 		public override LBAction Duplicate ()
 		{
-			DummyAction dup;
+			LBDummyAction dup;
 
-			dup = new DummyAction ();
+			//dup = new DummyAction (ActionName, ActionActivation, ActionDeactivation);
+			dup = (LBDummyAction)CreateInstance(this.GetType());
+
+			dup.ActionName = ActionName;
+			dup.ActionActivation = ActionActivation;
+			dup.ActionDeactivation = ActionDeactivation;
+			dup.action_state = LBActionStates.Inactive;
 
 			return dup;
+		}
+
+		public new static LBAction Default ()
+		{
+			LBDummyAction def;
+
+			def = (LBDummyAction)CreateInstance(typeof(LBDummyAction));
+
+			return def;
 		}
 	}
 }

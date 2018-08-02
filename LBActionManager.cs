@@ -16,117 +16,143 @@ namespace LBActionSystem
 
 		void Update ()
 		{
-			//Tick ();
+			Tick ();
+
+			DebugTest ();
 		}
 
-		protected virtual void InitActions()
+		protected void DebugTest ()
 		{
-			int i;
+			if (Input.GetKey (KeyCode.Alpha1))
+				ActivateAction ("Action1");
+			if (Input.GetKey (KeyCode.Alpha2))
+				ActivateAction ("Action2");
 
-			for (i = 0; i < Actions.Length; i++) 
+		}
+
+		protected virtual void InitActions ()
+		{
+			int i, k = 0;
+
+			for (i = 0; i < Actions.Length; i++)
 			{
-				if (Actions [i] != null) 
+				if (Actions [i] != null)
 				{
 					Actions [i] = Actions [i].Duplicate (); 
 					Actions [i].Init (gameObject, this);
-				} 
-				else 
+				}
+				else
 				{
-					Actions [i] = new DummyAction ();
+					Actions [i] = LBDummyAction.Default ();
+					Actions [i].ActionName = "Dummy Action " + k.ToString ();
 					Actions [i].Init (gameObject, this);
+					k++;
 				}
 			}
 		}
 
-//		protected virtual void Tick()
-//		{
-//			int i;
-//
-//			for (i = 0; i < Actions.Length; i++) 
-//			{
-//				Actions [i].Tick ();
-//			}
-//		}
+		protected virtual void Tick ()
+		{
+			int i;
 
-//		protected bool CheckActivationTransitive (LBTransitiveAction action)
-//		{
-//
-//			LBAction act;
-//
-//			act = FindSwitchableAction (action);
-//
-//			if (act == null)
-//				return false;
-//
-//			if (action.CanActivateAction (act.ActionName))
-//				return true;
-//			else
-//				return false;
-//		}
+			for (i = 0; i < Actions.Length; i++)
+			{
+				Actions [i].Tick ();
+			}
+		}
+
+		//		protected bool CheckActivationTransitive (LBTransitiveAction action)
+		//		{
+		//
+		//			LBAction act;
+		//
+		//			act = FindSwitchableAction (action);
+		//
+		//			if (act == null)
+		//				return false;
+		//
+		//			if (action.CanActivateAction (act.ActionName))
+		//				return true;
+		//			else
+		//				return false;
+		//		}
 			
-//		protected void ActivateTransitive (LBTransitiveAction action)
-//		{
-//			LBAction act;
-//
-//			act = FindSwitchableAction (action);
-//
-//			if (act == null)
-//				return;
-//
-//			action.ActivateAction ();
-//
-//			act.DeactivateAction ();
-//		}
+		//		protected void ActivateTransitive (LBTransitiveAction action)
+		//		{
+		//			LBAction act;
+		//
+		//			act = FindSwitchableAction (action);
+		//
+		//			if (act == null)
+		//				return;
+		//
+		//			action.ActivateAction ();
+		//
+		//			act.DeactivateAction ();
+		//		}
 
-//		public virtual bool ManualActivateAction(string action)
-//		{
-//			LBAction a;
-//
-//			a = FindAction (action);
-//
-//			if (a == null)
-//				return false;
-//
-//			bool b = a.GetType() == typeof(LBAction);////!!!!
-//
-//			if (a.ActionActivation == LBActionActivationTypes.Manual || a.ActionActivation == LBActionActivationTypes.ConditionalManual) 
-//			{
-//				if (a.GetType ().IsSubclassOf(typeof(LBTransitiveAction)) || a.GetType () == typeof(LBTransitiveAction)) 
-//				{
-//					if (CheckActivationTransitive ((LBTransitiveAction) a))
-//						ActivateTransitive ((LBTransitiveAction) a);
-//				}
-//
-//				if (a.GetType () == typeof(LBAction)) 
-//				{
-////					if (CheckActivationTransitive (a))
-////						ActivateTransitive (a);
-//				}
-//			}
-//
-//			return false;
-//		}
+		//		public virtual bool ManualActivateAction(string action)
+		//		{
+		//			LBAction a;
+		//
+		//			a = FindAction (action);
+		//
+		//			if (a == null)
+		//				return false;
+		//
+		//			bool b = a.GetType() == typeof(LBAction);////!!!!
+		//
+		//			if (a.ActionActivation == LBActionActivationTypes.Manual || a.ActionActivation == LBActionActivationTypes.ConditionalManual)
+		//			{
+		//				if (a.GetType ().IsSubclassOf(typeof(LBTransitiveAction)) || a.GetType () == typeof(LBTransitiveAction))
+		//				{
+		//					if (CheckActivationTransitive ((LBTransitiveAction) a))
+		//						ActivateTransitive ((LBTransitiveAction) a);
+		//				}
+		//
+		//				if (a.GetType () == typeof(LBAction))
+		//				{
+		////					if (CheckActivationTransitive (a))
+		////						ActivateTransitive (a);
+		//				}
+		//			}
+		//
+		//			return false;
+		//		}
+
+
+		public bool ActivateAction (string _action_name)
+		{
+			LBAction a;
+
+			a = FindAction (_action_name);
+
+			if (a != null)
+			{
+				return a.ActivateAction ();
+			}
+
+			return false;
+		}
 
 		public LBAction[] AllActions
 		{
-			get
-			{
+			get {
 				return Actions;
 			}
 		}
 
 		public LBAction[] ActiveActions
 		{
-			get 
-			{
+			get {
 				LBAction[] acts = new LBAction[0];
 				int i, k;
 
 				k = 0;
 
-				for (i = 0; i < Actions.Length; i++) 
+				for (i = 0; i < Actions.Length; i++)
 				{
-					if (Actions [i].ActionState == LBActionStates.Active) 
+					if (Actions [i].ActionState == LBActionStates.Active)
 					{
 						k++;
 						Array.Resize (ref acts, k); 
@@ -140,14 +166,13 @@ namespace LBActionSystem
 
 		public string[] AllActionNames
 		{
-			get 
-			{
+			get {
 				string[] str;
 				int i;
 
 				str = new string[Actions.Length];
 
-				for (i = 0; i < Actions.Length; i++) 
+				for (i = 0; i < Actions.Length; i++)
 				{
 					str [i] = Actions [i].ActionName;
 				}
@@ -158,16 +183,15 @@ namespace LBActionSystem
 
 		public string[] ActiveActionNames
 		{
-			get 
-			{
+			get {
 				string[] str = new string[0];
 				int i, k;
 
 				k = 0;
 
-				for (i = 0; i < Actions.Length; i++) 
+				for (i = 0; i < Actions.Length; i++)
 				{
-					if (Actions [i].ActionState == LBActionStates.Active) 
+					if (Actions [i].ActionState == LBActionStates.Active)
 					{
 						k++;
 						Array.Resize (ref str, k);
@@ -179,40 +203,40 @@ namespace LBActionSystem
 			}
 		}
 
-//		LBAction FindSwitchableAction(LBTransitiveAction act)
-//		{
-//			int i, j;
-//
-//			LBAction[] active;
-//
-//			active = ActiveActions;
-//
-//			for (i = 0; i < active.Length; i++) 
-//			{
-//				for (j = 0; j < act.TransfersFrom.Length; j++) 
-//				{
-//					if (act.TransfersFrom [j] == active [i].ActionName) 
-//					{
-//						if (act.TransferType == LBActionTransitTypes.Interrupt)
-//							return active [i];
-//						
-//						if (act.TransferType == LBActionTransitTypes.Switch) 
-//						{
-//							if (active [i].CanDeactivateAction ())
-//								return active [i];
-//						}
-//					}
-//				}
-//			}
-//
-//			return null;
-//		}
+		//		LBAction FindSwitchableAction(LBTransitiveAction act)
+		//		{
+		//			int i, j;
+		//
+		//			LBAction[] active;
+		//
+		//			active = ActiveActions;
+		//
+		//			for (i = 0; i < active.Length; i++)
+		//			{
+		//				for (j = 0; j < act.TransfersFrom.Length; j++)
+		//				{
+		//					if (act.TransfersFrom [j] == active [i].ActionName)
+		//					{
+		//						if (act.TransferType == LBActionTransitTypes.Interrupt)
+		//							return active [i];
+		//
+		//						if (act.TransferType == LBActionTransitTypes.Switch)
+		//						{
+		//							if (active [i].CanDeactivateAction ())
+		//								return active [i];
+		//						}
+		//					}
+		//				}
+		//			}
+		//
+		//			return null;
+		//		}
 			
-		LBAction FindAction(string action)
+		LBAction FindAction (string action)
 		{
 			int i;
 
-			for (i = 0; i < Actions.Length; i++) 
+			for (i = 0; i < Actions.Length; i++)
 			{
 				if (Actions [i].ActionName == action)
 					return Actions [i];
@@ -221,4 +245,5 @@ namespace LBActionSystem
 			return null;
 		}
 	}
+
 }

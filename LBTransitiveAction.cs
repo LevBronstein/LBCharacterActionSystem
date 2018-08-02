@@ -57,20 +57,24 @@ namespace LBActionSystem
 		public string[] TransfersFrom = new string[0];
 		public string TransfersTo;
 
-		public LBTransitiveAction ()
+		protected LBTransitiveAction()
 		{}
 
-		public LBTransitiveAction (string _name, LBActionActivationTypes _activation, LBActionDectivationTypes _deactivation) : 
+		public LBTransitiveAction (string _name) :
+		base (_name)
+		{}
+
+		public LBTransitiveAction (string _name, LBActionActivationTypes _activation, LBActionActivationTypes _deactivation) : 
 		base (_name, _activation, _deactivation)
 		{}
 
-		public LBTransitiveAction (string _name, LBActionActivationTypes _activation, LBActionDectivationTypes _deactivation, LBActionTransitTypes _transfer) : 
+		public LBTransitiveAction (string _name, LBActionActivationTypes _activation, LBActionActivationTypes _deactivation, LBActionTransitTypes _transfer) : 
 		base (_name, _activation, _deactivation)
 		{
 			TransferType = _transfer;
 		}
 
-		public LBTransitiveAction (string _name, LBActionActivationTypes _activation, LBActionDectivationTypes _deactivation, LBActionTransitTypes _transfer, string [] _transfer_from, string _transfer_to) : 
+		public LBTransitiveAction (string _name, LBActionActivationTypes _activation, LBActionActivationTypes _deactivation, LBActionTransitTypes _transfer, string [] _transfer_from, string _transfer_to) : 
 		base (_name, _activation, _deactivation)
 		{
 			TransferType = _transfer;
@@ -93,12 +97,12 @@ namespace LBActionSystem
 			return true;
 		}
 			
-		public override bool CanActivateAction ()
+		public override bool CanActivateAction (bool _isinternal)
 		{
 			if (TransfersFrom == null || TransfersFrom.Length == 0)
 				return false;
 
-			if (!base.CanActivateAction ()) // check conditions in base class
+			if (!base.CanActivateAction (_isinternal)) // check conditions in base class
 				return false;
 
 			int i;
@@ -123,18 +127,20 @@ namespace LBActionSystem
 		/// Switch is performed when transfering action has <c>TransferType == TransferType.Switch</c>, interrupt is performed when <c>TransferType == TransferType.Interrupt</c>.
 		/// </remarks>
 		/// </summary>
-		public override void ActivateAction ()
+		public override bool ActivateAction ()
 		{		
 			int i;
 
 			for (i = 0; i < input.Length; i++) 
 			{
 				if (InputTransferAction (input [i]))
-					return; // transfer only from one action
+					return true; // transfer only from one action
 			}
+
+			return false;
 		}
 
-		public void ActivateAction (LBAction prev_action)
+		public bool ActivateAction (LBAction prev_action)
 		{	
 			int i;
 
@@ -143,9 +149,11 @@ namespace LBActionSystem
 				if (input[i] == prev_action) 
 				{
 					if (InputTransferAction (input [i]))
-						return; // transfer only from one action
+						return true; // transfer only from one action
 				}
 			}
+
+			return false;
 		}
 
 		protected virtual bool CanInputTransferAction(LBAction old_action)
@@ -162,14 +170,14 @@ namespace LBActionSystem
 			{
 				if (old_action.ActionState == LBActionStates.Active) 
 				{
-					if (old_action.CanDeactivateAction ())
+					if (old_action.CanDeactivateAction (true))
 						return true;
 				}
 			}
 
 			return false;
 		}
-
+			
 		/// <summary>
 		/// Determines whether this action can be transfered to the specified action with a given transit type. This condition is checked <c>SwitchAction</c>.
 		/// </summary>
@@ -178,7 +186,7 @@ namespace LBActionSystem
 		/// <param name="transit">Transit type (switch or interrupt).</param>
 		protected virtual bool CanOutputTransferAction(LBAction new_action, LBActionTransitTypes transit = LBActionTransitTypes.Switch)
 		{
-			if (!base.CanDeactivateAction ()) // как быть с автоматически и вручную активирумыми действиями?
+			if (!base.CanDeactivateAction (true)) // как быть с автоматически и вручную активирумыми действиями?
 				return false; // if the action is deactivated or inactive, or it has some conditions
 
 			if (transit == LBActionTransitTypes.Interrupt)
@@ -224,7 +232,7 @@ namespace LBActionSystem
 				}
 				else
 				{
-					if (old_action.CanDeactivateAction())
+					if (old_action.CanDeactivateAction(true))
 					{
 						ActionActivatedArgs = new LBActionTransitionEventArgs (old_action, this, TransferType);	// we set event args, because @base.ActivateAction riases the event
 						base.ActivateAction ();
@@ -251,7 +259,7 @@ namespace LBActionSystem
 		{
 			if (transit == LBActionTransitTypes.Switch) 
 			{
-				if (base.CanDeactivateAction () && output.CanActivateAction()) // here we have to check all conditions, etc to be able to switch 
+				if (base.CanDeactivateAction (true) && output.CanActivateAction(true)) // here we have to check all conditions, etc to be able to switch 
 				{
 					ActionDeactivatedArgs = new LBActionTransitionEventArgs (this, new_action, TransferType); // we set event args, because @base.DeactivateAction riases the event
 					base.DeactivateAction ();
