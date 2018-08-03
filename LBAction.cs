@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace LBActionSystem
 {
+	/// <summary>
+	/// This enum defines action states: an action can be <c>Active</c> (currently running), <c>Inactive</c> (not running) and <c>Disabled</c> (cannot be activated).
+	/// </summary>
 	public enum LBActionStates
 	{
 		Active,
@@ -63,7 +66,9 @@ namespace LBActionSystem
 		/// Occurs when this action is activated.
 		/// </summary>
 		public event EventHandler<LBActionEventArgs> ActionActivated;
-
+		/// <summary>
+		/// Occurs when this action is deactivated.
+		/// </summary>
 		protected LBActionEventArgs ActionActivatedArgs;
 
 		/// <summary>
@@ -75,24 +80,34 @@ namespace LBActionSystem
 
 		protected LBActionStates action_state = LBActionStates.Inactive;
 
-		public LBAction()
-		{}
+//		public LBAction()
+//		{}
 
-		public LBAction (string _name)
-		{
-			ActionName = _name;
-		}
-
-		public LBAction (string _name, LBActionActivationTypes _activation, LBActionActivationTypes _deactivation)
-		{
-			ActionName = _name;
-			ActionActivation = _activation;
-			ActionDeactivation = _deactivation;
-		}
+//		public LBAction (string _name)
+//		{
+//			ActionName = _name;
+//		}
+//
+//		public LBAction (string _name, LBActionActivationTypes _activation, LBActionActivationTypes _deactivation)
+//		{
+//			ActionName = _name;
+//			ActionActivation = _activation;
+//			ActionDeactivation = _deactivation;
+//		}
 
 		public virtual LBAction Duplicate ()
 		{
 			return null;
+		}
+
+		protected virtual void DuplicateProperties(LBAction dup)
+		{
+			dup.ActionName = ActionName;
+			dup.ActionActivation = ActionActivation;
+			dup.ActionDeactivation = ActionDeactivation;
+			dup.action_state = LBActionStates.Inactive;
+
+			dup.name = ActionName;
 		}
 
 		public static LBAction Default ()
@@ -206,7 +221,7 @@ namespace LBActionSystem
 			return false;
 		}
 
-		protected bool DeactivateActionInternal()
+		protected virtual bool DeactivateActionInternal()
 		{
 			if (CanDeactivateAction (true))
 			{
@@ -263,44 +278,6 @@ namespace LBActionSystem
 		{
 			return string.Format ("[{0} ({1}): \n Action activation type is {2} \n" +
 				"Action deactivation type is {3} \n Action is currently {4}]", ActionName, this.GetType().Name, ActionActivation, ActionDeactivation, ActionState);
-		}
-	}
-
-	[CreateAssetMenu (fileName = "NewDummyAction", menuName = "LBActionSystem/DummyAction")]
-	public class LBDummyAction : LBAction
-	{
-		public LBDummyAction (string _name) :
-		base (_name)
-		{}
-
-		public LBDummyAction (string _name, LBActionActivationTypes _activation, LBActionActivationTypes _deactivation) :
-		base (_name, _activation, _deactivation)
-		{
-			action_state = LBActionStates.Inactive;
-		}
-
-		public override LBAction Duplicate ()
-		{
-			LBDummyAction dup;
-
-			//dup = new DummyAction (ActionName, ActionActivation, ActionDeactivation);
-			dup = (LBDummyAction)CreateInstance(this.GetType());
-
-			dup.ActionName = ActionName;
-			dup.ActionActivation = ActionActivation;
-			dup.ActionDeactivation = ActionDeactivation;
-			dup.action_state = LBActionStates.Inactive;
-
-			return dup;
-		}
-
-		public new static LBAction Default ()
-		{
-			LBDummyAction def;
-
-			def = (LBDummyAction)CreateInstance(typeof(LBDummyAction));
-
-			return def;
 		}
 	}
 }

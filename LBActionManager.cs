@@ -24,9 +24,14 @@ namespace LBActionSystem
 		protected void DebugTest ()
 		{
 			if (Input.GetKey (KeyCode.Alpha1))
-				ActivateAction ("Action1");
+				ActivateAction ("Default");
+			else
+				DeactivateAction ("Default");
+
 			if (Input.GetKey (KeyCode.Alpha2))
-				ActivateAction ("Action2");
+				ActivateAction ("Walk");
+			else
+				DeactivateAction ("Walk");
 
 		}
 
@@ -130,6 +135,20 @@ namespace LBActionSystem
 			if (a != null)
 			{
 				return a.ActivateAction ();
+			}
+
+			return false;
+		}
+
+		public bool DeactivateAction (string _action_name)
+		{
+			LBAction a;
+
+			a = FindAction (_action_name);
+
+			if (a != null)
+			{
+				return a.DeactivateAction ();
 			}
 
 			return false;

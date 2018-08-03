@@ -21,74 +21,52 @@ namespace LBActionSystem
 		public float AnimationBlendTime = 0.1f;
 		public LBActionAnimationTypes AnimationType = LBActionAnimationTypes.Playback;
 
-		protected LBAnimatedAction()
-		{}
-
-		public override bool Init (GameObject parentgameobject, LBActionManager manager)
+		public override bool Init (GameObject _parent, LBActionManager _manager)
 		{
-			if (!base.Init(parentgameobject, manager))
+			if (!base.Init(_parent, _manager))
 				return false;
 
-			animator = parentgameobject.GetComponent<Animator> ();
+			animator = _parent.GetComponent<Animator> ();
 
 			if (animator == null) 
 			{
-				ReportProblem ("animator in " + parentgameobject.ToString () + " not found!");
+				ReportProblem ("animator in " + _parent.ToString () + " not found!");
 				return false;
 			}
 
 			return true;
 		}
 
-		public override bool CanDeactivateAction (bool _isinternal)
-		{
-//			if (!base.CanDeactivateAction (true))
-//				return false;
-//
-//			if (AnimationType == LBActionAnimationTypes.Playback) 
-//			{
-//				if (ActionDeactivation == LBActionDectivationTypes.Automatic || ActionDeactivation == LBActionDectivationTypes.ConditionalAutomatic) 
-//				{
-//					if (animator.GetCurrentAnimatorStateInfo (AnimationLayer).normalizedTime < 1)
-//						return false;
-//					else
-//						return true;
-//				}
-//			}
-
-			return false;
-		}
-
-
 		protected override bool InputTransferAction(LBAction old_action)
 		{
-			if (!base.InputTransferAction (old_action))
-				return false;
-
-			if (AnimationName != string.Empty)
-				animator.CrossFade(AnimationName, AnimationBlendTime);
-
-			return true;
-		}
-
-		protected override bool CanOutputTransferAction(LBAction new_action, LBActionTransitTypes transit = LBActionTransitTypes.Switch)
-		{
-			if (!base.CanDeactivateAction (true)) // как быть с автоматически и вручную активирумыми действиями?
-				return false; // if the action is deactivated or inactive, or it has some conditions
-
-			if (transit == LBActionTransitTypes.Interrupt)
-				return CheckInterruptAction ();
+			if (base.InputTransferAction (old_action))
+			{
+				animator.CrossFade (AnimationName, AnimationBlendTime);
+				return true;
+			}
 			else
-				return CheckSwitchAction ();
+				return false;
+		}
+	
+		public override LBAction Duplicate ()
+		{
+			LBAnimatedAction dup;
+
+			dup = (LBAnimatedAction)CreateInstance(this.GetType());
+			DuplicateProperties (dup);
+
+			return dup;
 		}
 
-		public override void Tick ()
+		protected override void DuplicateProperties(LBAction dup)
 		{
-//			if (AnimationType == LBActionAnimationTypes.Playback && (ActionDeactivation == LBActionDectivationTypes.Automatic || ActionDeactivation == LBActionDectivationTypes.ConditionalAutomatic))
-//			{
-//				
-//			}
-			//animator.GetCurrentAnimatorClipInfo()[0].clip.
+			base.DuplicateProperties (dup);
+
+			((LBAnimatedAction)dup).AnimationName = AnimationName;
+			((LBAnimatedAction)dup).AnimationLayer = AnimationLayer;
+			((LBAnimatedAction)dup).AnimationBlendTime = AnimationBlendTime;
+			((LBAnimatedAction)dup).AnimationType = AnimationType;
 		}
+	
 	}
 }
