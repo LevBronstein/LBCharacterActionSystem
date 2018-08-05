@@ -9,6 +9,8 @@ namespace LBActionSystem
 	{
 		public LBAction[] Actions;
 
+		bool b1, b2;
+
 		void Start ()
 		{
 			InitActions ();
@@ -24,14 +26,38 @@ namespace LBActionSystem
 		protected void DebugTest ()
 		{
 			if (Input.GetKey (KeyCode.Alpha1))
-				ActivateAction ("Default");
+			{
+				if (!b1)
+				{
+					ActivateAction ("Default");
+					b1 = true;
+				}
+			}
 			else
-				DeactivateAction ("Default");
+			{
+				if (b1)
+				{
+					DeactivateAction ("Default");
+					b1 = false;
+				}
+			}
 
 			if (Input.GetKey (KeyCode.Alpha2))
-				ActivateAction ("Walk");
+			{
+				if (!b2)
+				{
+					ActivateAction ("Walk");
+					b2 = true;
+				}
+			}
 			else
-				DeactivateAction ("Walk");
+			{
+				if (b2)
+				{
+					DeactivateAction ("Walk");
+					b2 = false;
+				}
+			}
 
 		}
 

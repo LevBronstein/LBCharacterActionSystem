@@ -175,7 +175,7 @@ namespace LBActionSystem
 			return false;
 		}
 
-		protected bool ActivateActionInternal()
+		protected virtual bool ActivateActionInternal()
 		{
 			if (CanActivateAction (true))
 			{
@@ -199,14 +199,26 @@ namespace LBActionSystem
 				return false;
 		}
 
+		protected virtual bool ActivateAction(bool _is_internal)
+		{
+			if (CanActivateAction (_is_internal))
+			{
+				action_state = LBActionStates.Active;
+				RaiseEvenet_OnActionActivated ();
+				return true;
+			}
+
+			return false;
+		}
+			
 		protected virtual bool CheckDeactivationConditions ()
 		{
 			return true;
 		}
 
-		public virtual bool CanDeactivateAction (bool _isinternal)
+		public virtual bool CanDeactivateAction (bool _is_internal)
 		{
-			if ((_isinternal && ((ActionDeactivation & LBActionActivationTypes.Internal) != 0)) || (!_isinternal && ((ActionDeactivation & LBActionActivationTypes.External) != 0)))
+			if ((_is_internal && ((ActionDeactivation & LBActionActivationTypes.Internal) != 0)) || (!_is_internal && ((ActionDeactivation & LBActionActivationTypes.External) != 0)))
 			{
 				//if activation is performed from inside and it is internally-activated or activation is performed from outside and it is externally-activated
 				if (action_state == LBActionStates.Active)
@@ -229,8 +241,20 @@ namespace LBActionSystem
 				RaiseEvenet_OnActionDeactivated ();
 				return true;
 			}
-			else
-				return false;
+
+			return false;
+		}
+
+		protected virtual bool DeactivateAction (bool _is_internal)
+		{
+			if (CanDeactivateAction (_is_internal))
+			{
+				action_state = LBActionStates.Inactive;
+				RaiseEvenet_OnActionDeactivated ();
+				return true;
+			}
+
+			return false;
 		}
 
 		public virtual bool DeactivateAction ()

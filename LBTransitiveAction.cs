@@ -103,17 +103,95 @@ namespace LBActionSystem
 			return true;
 		}
 			
-		public override bool CanActivateAction (bool _isinternal)
+		public bool CanActivateAction (LBAction _prev, bool _is_internal)
 		{
-			if (!base.CanActivateAction (_isinternal)) // check conditions in the base class
+			if (!base.CanActivateAction (_is_internal)) // check conditions in the base class (проверяеися несколько раз!)
 				return false;
 
+			if (_prev == null)
+				return false;
+
+			if (TransfersFrom == null || TransfersFrom.Length == 0)
+				return false;
+
+			if (!CanTransferFrom (_prev))
+				return false;
+
+			if (_prev is LBTransitiveAction) 
+			{		
+				if (((LBTransitiveAction)_prev).CanDeactivateAction (this, true, TransferType))
+					return true; // here we commit that we have at least one possible option			
+			} 
+			else 
+			{
+				if (_prev.ActionState == LBActionStates.Active) 
+				{
+					if (_prev.CanDeactivateAction (true))
+						return true;
+				}
+			}
+
+			return false;
+		}
+
+		public override bool CanActivateAction (bool _is_internal)
+		{
 			int i;
 
-			// if any of input actions can be transfered
 			for (i = 0; i < input.Length; i++) 
 			{
-				if (CanInputTransferAction (input [i]))
+				if (CanActivateAction (input [i], _is_internal))
+					return true; //if any of input is availiable to transfer
+			}
+
+			return false;
+		}
+
+
+		protected virtual bool ActivateAction(LBAction _prev, bool _is_internal)
+		{
+//			if (!CanActivateAction (_prev, _is_internal))
+//				return false;
+
+			ActionActivatedArgs = new LBActionTransitionEventArgs (_prev, this, TransferType); // we set event args, because @base.ActivateAction riases the event
+
+			if (!base.ActivateAction (_is_internal))
+				return false;
+
+			if (_prev is LBTransitiveAction)
+			{
+				if (((LBTransitiveAction)_prev).DeactivateAction (this, true, TransferType)) // transfer from this action
+					return true;
+			}
+			else
+			{
+				if (_prev.DeactivateAction())
+					return true;
+			}
+
+			return false;
+		}
+
+		protected override bool ActivateActionInternal()
+		{
+			int i;
+
+			for (i = 0; i < input.Length; i++) 
+			{
+				if (ActivateAction (input [i], true))
+					return true;
+			}
+
+			return false;
+		}
+
+		public override bool ActivateAction ()
+		{			
+			int i;
+
+			for (i = 0; i < input.Length; i++) 
+			{
+				if (ActivateAction (input [i], false))
 					return true;
 			}
 
@@ -130,104 +208,120 @@ namespace LBActionSystem
 		/// Switch is performed when transfering action has <c>TransferType == TransferType.Switch</c>, interrupt is performed when <c>TransferType == TransferType.Interrupt</c>.
 		/// </remarks>
 		/// </summary>
-		public override bool ActivateAction ()
+		protected override bool ActivateAction (bool _is_internal) //это 100% внешняя активация
 		{		
+//			if (!base.ActivateAction (_is_internal))
+//				return false;
+
 			int i;
 
 			for (i = 0; i < input.Length; i++) 
 			{
-				if (InputTransferAction (input [i]))
+				if (ActivateAction (input [i], _is_internal))
+					return true;
+			}
+
+			return false;
+		}
+					
+		public virtual bool CanDeactivateAction (LBAction _next, bool _is_internal, LBActionTransitTypes transit = LBActionTransitTypes.Switch)
+		{
+			if (!base.CanDeactivateAction (_is_internal))
+				return false;
+			
+			if (transit == LBActionTransitTypes.Interrupt)
+			{
+				if (!CheckInterruptAction (_next))
+					return false;
+			}
+			else
+			{
+				if (!CheckSwitchAction (_next))
+					return false;
+			}
+
+			if (_next is LBTransitiveAction) 
+			{		
+				if (((LBTransitiveAction)_next).CanActivateAction(this, _is_internal))
+					return true; // here we commit that we have at least one possible option			
+			} 
+			else 
+			{
+				if (_next.ActionState == LBActionStates.Inactive) 
 				{
-					if (base.ActivateAction ()) //if transfer was a sucsess, activate current action
-						return true; // transfer only from one action
+					if (_next.CanActivateAction (true))
+						return true;
 				}
 			}
 
 			return false;
 		}
 
-		public bool ActivateAction (LBAction prev_action)
-		{	
-			int i;
+		public override bool CanDeactivateAction (bool _is_internal)
+		{
+			if (output == null)
+				return false;
 
-			for (i = 0; i < input.Length; i++) 
+			if (output is LBTransitiveAction)
 			{
-				if (input[i] == prev_action) 
+				if (CanDeactivateAction (output, _is_internal, ((LBTransitiveAction)output).TransferType))
+					return true; 
+			}
+			else
+			{
+				if (CanDeactivateAction (output, _is_internal, LBActionTransitTypes.Switch))
+					return true;
+			}
+				
+			return false;
+		}
+
+		protected virtual bool DeactivateAction(LBAction _next, bool _is_internal, LBActionTransitTypes _transfer = LBActionTransitTypes.Switch)
+		{
+			if (_next is LBTransitiveAction)
+			{
+				ActionDeactivatedArgs = new LBActionTransitionEventArgs (this, _next, _transfer); // we set event args, because @base.DeactivateAction riases the event
+
+				if (base.DeactivateAction (_is_internal))
 				{
-					if (InputTransferAction (input [i]))
+					if (((LBTransitiveAction)_next).ActivateAction (this, true))
 					{
-						base.ActivateAction (); //if transfer was a sucsess, activate current action
-						return true; // transfer only from one action (first found!)
+						return true;
+					}
+				}
+			}
+			else
+			{
+				ActionDeactivatedArgs = new LBActionTransitionEventArgs (this, _next, _transfer); // we set event args, because @base.DeactivateAction riases the event
+
+				if (base.DeactivateAction (_is_internal))
+				{
+					if (_next.ActivateAction ())
+					{
+						return true;
 					}
 				}
 			}
 
 			return false;
 		}
-
-		protected virtual bool CanInputTransferAction(LBAction old_action)
-		{
-			if (old_action == null)
-				return false;
-
-			if (TransfersFrom == null || TransfersFrom.Length == 0)
-				return false;
-
-			if (!CanTransferFrom (old_action))
-				return false;
-
-			if (old_action is LBTransitiveAction) 
-			{		
-				if (((LBTransitiveAction)old_action).CanOutputTransferAction (this, TransferType))
-					return true; // here we commit that we have at least one possible option			
-			} 
-			else 
-			{
-				if (old_action.ActionState == LBActionStates.Active) 
-				{
-					if (old_action.CanDeactivateAction (true))
-						return true;
-				}
-			}
-
-			return false;
-		}
 			
-		/// <summary>
-		/// Determines whether this action can be transfered to the specified action with a given transit type. This condition is checked <c>SwitchAction</c>.
-		/// </summary>
-		/// <returns><c>true</c> if switching is is possible, otherwise -- <c>false</c>.</returns>
-		/// <param name="new_action">An action, which is activated (switched or interrupted) after this one is deactivated.</param>
-		/// <param name="transit">Transit type (switch or interrupt).</param>
-		protected virtual bool CanOutputTransferAction(LBAction new_action, LBActionTransitTypes transit = LBActionTransitTypes.Switch)
+		protected override bool DeactivateActionInternal()
 		{
-			if (transit == LBActionTransitTypes.Interrupt)
-			{
-				if (!CheckInterruptAction (new_action))
-					return false;
-			}
-			else
-			{
-				if (CheckSwitchAction (new_action))
-					return false;
-			}
-
-			if (new_action is LBTransitiveAction) 
-			{		
-				if (((LBTransitiveAction)new_action).CanInputTransferAction (this))
-					return true; // here we commit that we have at least one possible option			
-			} 
+			if (output is LBTransitiveAction)
+				return DeactivateAction (output, true, ((LBTransitiveAction)output).TransferType); //when deactivating from internal -- always switch
 			else 
-			{
-				if (new_action.ActionState == LBActionStates.Inactive) 
-				{
-					if (new_action.CanActivateAction (true))
-						return true;
-				}
-			}
-
-			return false;
+				return DeactivateAction (output, true, LBActionTransitTypes.Switch);
 		}
+
+		public override bool DeactivateAction ()
+		{
+			if (output is LBTransitiveAction)
+				return DeactivateAction (output, false, ((LBTransitiveAction)output).TransferType); //when deactivating from internal -- always switch
+			else 
+				return DeactivateAction (output, false, LBActionTransitTypes.Switch);
+		}
+
 
 		/// <summary>
 		/// This function is called from <c>CanSwitchAction</c>, when <c>transit == LBActionTransitTypes.Interrupt</c>.
@@ -252,90 +346,7 @@ namespace LBActionSystem
 		{
 			return true;
 		}
-
-		protected virtual bool InputTransferAction(LBAction old_action)
-		{
-			if (CanInputTransferAction((old_action)))
-			{
-				if (old_action is LBTransitiveAction)
-				{
-					ActionActivatedArgs = new LBActionTransitionEventArgs (old_action, this, TransferType); // we set event args, because @base.ActivateAction riases the event
-					((LBTransitiveAction)old_action).OutputTransferAction (this, TransferType); // transfer from this action
-					return true;
-				}
-				else
-				{
-					if (old_action.CanDeactivateAction(true))
-					{
-						ActionActivatedArgs = new LBActionTransitionEventArgs (old_action, this, TransferType);	// we set event args, because @base.ActivateAction riases the event
-						old_action.DeactivateAction ();
-						return true;
-					}
-				}
-			}
-
-			ActionActivatedArgs = null; // is it ok?
-
-			return false;
-		}
-
-		/// <summary>
-		/// Completion of current action with transition to the specified action.
-		/// </summary>
-		/// <remarks> 
-		/// For LBTransitiveAction type only, this subroutine is called from <c>ActivateAction</c>.
-		/// </remarks> 
-		/// <param name="new_action">An action to transfer to.</param>
-		/// <param name="transit">Transit type (switch or interrupt).</param>
-		protected virtual bool OutputTransferAction(LBAction new_action, LBActionTransitTypes transit = LBActionTransitTypes.Switch)
-		{
-			if (transit == LBActionTransitTypes.Switch) 
-			{
-				if (base.CanDeactivateAction (true) && output.CanActivateAction (true)) // here we have to check all conditions, etc to be able to switch 
-				{
-					ActionDeactivatedArgs = new LBActionTransitionEventArgs (this, new_action, TransferType); // we set event args, because @base.DeactivateAction riases the event
-					base.DeactivateAction ();
-					OutputTransferAction (output, LBActionTransitTypes.Switch);
-					return true;
-				}
-				else
-					return false;
-			}
-			else
-			{
-				return true; //interrupt is always performed
-			}
-		}
-
-		protected override bool DeactivateActionInternal()
-		{
-			if (!base.DeactivateActionInternal())
-				return false;
-
-			if (CanOutputTransferAction (output, TransferType))
-				OutputTransferAction (output, TransferType);
-
-			return false;
-		}
-
-		public override bool DeactivateAction ()
-		{
-			if (!base.DeactivateAction())
-				return false;
-
-			if (CanOutputTransferAction (output, TransferType))
-				OutputTransferAction (output, TransferType);
-
-			return false;
-		}
-
-		protected virtual void ForceDeactivateAction (LBAction new_action)
-		{
-			action_state = LBActionStates.Inactive;
-			ActionDeactivatedArgs = new LBActionTransitionEventArgs (this, new_action, TransferType); // we set event args, because @base.DeactivateAction riases the event
-			RaiseEvenet_OnActionDeactivated();
-		}
-			
+				
 		protected bool CanTransferFrom(LBAction prev_action)
 		{
 			int i;

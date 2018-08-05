@@ -37,16 +37,39 @@ namespace LBActionSystem
 			return true;
 		}
 
-		protected override bool InputTransferAction(LBAction old_action)
+		protected override bool ActivateAction(LBAction _prev, bool _is_internal)
 		{
-			if (base.InputTransferAction (old_action))
+			if (base.ActivateAction(_prev, _is_internal))
 			{
 				animator.CrossFade (AnimationName, AnimationBlendTime);
 				return true;
 			}
-			else
-				return false;
+
+			return false;
 		}
+
+//		protected override bool DeactivateAction(LBAction _next, bool _is_internal, LBActionTransitTypes _transfer = LBActionTransitTypes.Switch)
+//		{
+//			if (base.DeactivateAction(_next, _is_internal, _transfer))
+//			{
+//				if (!(_next is LBAnimatedAction))
+//					animator.CrossFade ("", AnimationBlendTime);
+//				
+//				return true;
+//			}
+//
+//			return false;
+//		}
+//		protected override bool InputTransferAction(LBAction old_action, bool is_internal)
+//		{
+//			if (base.InputTransferAction (old_action, is_internal))
+//			{
+//				animator.CrossFade (AnimationName, AnimationBlendTime);
+//				return true;
+//			}
+//			else
+//				return false;
+//		}
 	
 		public override LBAction Duplicate ()
 		{
