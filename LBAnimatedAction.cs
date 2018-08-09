@@ -37,17 +37,16 @@ namespace LBActionSystem
 			return true;
 		}
 
-		protected override bool ActivateAction(LBAction _prev, bool _is_internal)
+		protected override bool TransferIn(LBAction _out, LBActionTransitTypes _transfer = LBActionTransitTypes.Switch)
 		{
-			if (base.ActivateAction(_prev, _is_internal))
-			{
-				animator.CrossFade (AnimationName, AnimationBlendTime);
-				return true;
-			}
+			if (!base.TransferIn (_out, _transfer))
+				return false;
 
-			return false;
+			animator.CrossFade (AnimationName, AnimationBlendTime);
+
+			return true;
 		}
-
+			
 //		protected override bool DeactivateAction(LBAction _next, bool _is_internal, LBActionTransitTypes _transfer = LBActionTransitTypes.Switch)
 //		{
 //			if (base.DeactivateAction(_next, _is_internal, _transfer))

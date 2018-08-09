@@ -102,33 +102,26 @@ namespace LBActionSystem
 
 			return true;
 		}
-			
+
+	#region CanActivate
+
 		public bool CanActivateAction (LBAction _prev, bool _is_internal)
 		{
-			if (!base.CanActivateAction (_is_internal)) // check conditions in the base class (проверяеися несколько раз!)
+			if (!base.CanActivateAction (_is_internal)) // здесь проверяется с учётом _is_internal
 				return false;
 
-			if (_prev == null)
-				return false;
-
-			if (TransfersFrom == null || TransfersFrom.Length == 0)
-				return false;
-
-			if (!CanTransferFrom (_prev))
+			if (!CanTransferIn(_prev)) // здесь проверяется специфичный для LBTransitiveAction переход
 				return false;
 
 			if (_prev is LBTransitiveAction) 
 			{		
-				if (((LBTransitiveAction)_prev).CanDeactivateAction (this, true, TransferType))
+				if (((LBTransitiveAction)_prev).CanTransferOut (this, TransferType)) //достаточно простой проверки возможности переключения
 					return true; // here we commit that we have at least one possible option			
 			} 
 			else 
 			{
-				if (_prev.ActionState == LBActionStates.Active) 
-				{
-					if (_prev.CanDeactivateAction (true))
-						return true;
-				}
+				if (_prev.CanDeactivateAction (true))
+					return true;
 			}
 
 			return false;
@@ -146,27 +139,76 @@ namespace LBActionSystem
 
 			return false;
 		}
+			
+	#endregion
+				
+	#region CanDeactivate
 
+		public virtual bool CanDeactivateAction (LBAction _next, bool _is_internal, LBActionTransitTypes _transfer = LBActionTransitTypes.Switch)
+		{
+			if (!base.CanDeactivateAction (_is_internal))
+				return false;
+
+			if (!CanTransferOut(_next, _transfer))
+				return false;
+
+			if (_next is LBTransitiveAction) 
+			{		
+				if (((LBTransitiveAction)_next).CanTransferIn(this))
+					return true; // here we commit that we have at least one possible option			
+			} 
+			else 
+			{
+				if (_next.CanActivateAction (true))
+					return true;
+			}
+
+			return false;
+		}
+
+		public override bool CanDeactivateAction (bool _is_internal)
+		{
+			if (output is LBTransitiveAction)
+			{
+				if (CanDeactivateAction (output, _is_internal, ((LBTransitiveAction)output).TransferType))
+					return true; 
+			}
+			else
+			{
+				if (CanDeactivateAction (output, _is_internal, LBActionTransitTypes.Switch))
+					return true;
+			}
+
+			return false;
+		}
+
+	#endregion
+
+	#region Activation
 
 		protected virtual bool ActivateAction(LBAction _prev, bool _is_internal)
 		{
 //			if (!CanActivateAction (_prev, _is_internal))
-//				return false;
+//					return false;
 
-			ActionActivatedArgs = new LBActionTransitionEventArgs (_prev, this, TransferType); // we set event args, because @base.ActivateAction riases the event
-
-			if (!base.ActivateAction (_is_internal))
+			if (!CanTransferIn (_prev))
 				return false;
 
 			if (_prev is LBTransitiveAction)
 			{
-				if (((LBTransitiveAction)_prev).DeactivateAction (this, true, TransferType)) // transfer from this action
+				if (((LBTransitiveAction)_prev).TransferOut (this, _is_internal, TransferType)) // transfer from this action
+				{
+					TransferIn (_prev, TransferType);
 					return true;
+				}
 			}
 			else
 			{
-				if (_prev.DeactivateAction())
+				if (_prev.DeactivateAction ())
+				{
+					TransferIn (_prev, LBActionTransitTypes.Switch);
 					return true;
+				}
 			}
 
 			return false;
@@ -210,9 +252,6 @@ namespace LBActionSystem
 		/// </summary>
 		protected override bool ActivateAction (bool _is_internal) //это 100% внешняя активация
 		{		
-//			if (!base.ActivateAction (_is_internal))
-//				return false;
-
 			int i;
 
 			for (i = 0; i < input.Length; i++) 
@@ -223,89 +262,30 @@ namespace LBActionSystem
 
 			return false;
 		}
-					
-		public virtual bool CanDeactivateAction (LBAction _next, bool _is_internal, LBActionTransitTypes transit = LBActionTransitTypes.Switch)
+
+		protected virtual bool TransferIn(LBAction _out, LBActionTransitTypes _transfer = LBActionTransitTypes.Switch)
 		{
-			if (!base.CanDeactivateAction (_is_internal))
-				return false;
-			
-			if (transit == LBActionTransitTypes.Interrupt)
-			{
-				if (!CheckInterruptAction (_next))
-					return false;
-			}
+			if (_out is LBTransitiveAction)
+				ActionActivatedArgs = new LBActionTransitionEventArgs (_out, this, ((LBTransitiveAction)_out).TransferType); // we set event args, because @base.ActivateAction riases the event
 			else
-			{
-				if (!CheckSwitchAction (_next))
-					return false;
-			}
+				ActionActivatedArgs = new LBActionTransitionEventArgs (_out, this, LBActionTransitTypes.Switch); // we set event args, because @base.ActivateAction riases the event
 
-			if (_next is LBTransitiveAction) 
-			{		
-				if (((LBTransitiveAction)_next).CanActivateAction(this, _is_internal))
-					return true; // here we commit that we have at least one possible option			
-			} 
-			else 
-			{
-				if (_next.ActionState == LBActionStates.Inactive) 
-				{
-					if (_next.CanActivateAction (true))
-						return true;
-				}
-			}
-
-			return false;
-		}
-
-		public override bool CanDeactivateAction (bool _is_internal)
-		{
-			if (output == null)
+			if (!base.ActivateAction (true))
 				return false;
 
-			if (output is LBTransitiveAction)
-			{
-				if (CanDeactivateAction (output, _is_internal, ((LBTransitiveAction)output).TransferType))
-					return true; 
-			}
-			else
-			{
-				if (CanDeactivateAction (output, _is_internal, LBActionTransitTypes.Switch))
-					return true;
-			}
-				
-			return false;
+			return true;
 		}
 
-		protected virtual bool DeactivateAction(LBAction _next, bool _is_internal, LBActionTransitTypes _transfer = LBActionTransitTypes.Switch)
+	#endregion
+
+	#region Deactivation
+
+		//switch, always internal
+		protected virtual bool DeactivateAction(LBAction _next, LBActionTransitTypes _transfer = LBActionTransitTypes.Switch)
 		{
-			if (_next is LBTransitiveAction)
-			{
-				ActionDeactivatedArgs = new LBActionTransitionEventArgs (this, _next, _transfer); // we set event args, because @base.DeactivateAction riases the event
-
-				if (base.DeactivateAction (_is_internal))
-				{
-					if (((LBTransitiveAction)_next).ActivateAction (this, true))
-					{
-						return true;
-					}
-				}
-			}
-			else
-			{
-				ActionDeactivatedArgs = new LBActionTransitionEventArgs (this, _next, _transfer); // we set event args, because @base.DeactivateAction riases the event
-
-				if (base.DeactivateAction (_is_internal))
-				{
-					if (_next.ActivateAction ())
-					{
-						return true;
-					}
-				}
-			}
-
-			return false;
+			return true;
 		}
-			
+
 		protected override bool DeactivateActionInternal()
 		{
 			if (output is LBTransitiveAction)
@@ -322,6 +302,90 @@ namespace LBActionSystem
 				return DeactivateAction (output, false, LBActionTransitTypes.Switch);
 		}
 
+		protected virtual bool DeactivateAction(LBAction _next, bool _is_internal, LBActionTransitTypes _transfer = LBActionTransitTypes.Switch)
+		{
+			if (!CanTransferOut (_next, _transfer))
+				return false;
+
+			if (_next is LBTransitiveAction)
+			{
+				if (TransferOut (_next, _is_internal, _transfer))
+				{
+					if (((LBTransitiveAction)_next).TransferIn (this, _transfer))
+					{
+						return true;
+					}
+				}
+			}
+			else
+			{
+				if (TransferOut (_next, _is_internal, _transfer))
+				{
+					if (_next.ActivateAction ())
+					{
+						ActionDeactivatedArgs = new LBActionTransitionEventArgs (this, _next, _transfer); // we set event args, because @base.DeactivateAction riases the event
+
+						if (base.DeactivateAction (_is_internal))
+						{
+							return true;
+						}
+					}
+				}
+			}
+
+			return false;
+		}
+
+		protected virtual bool TransferOut(LBAction _in, bool _is_internal, LBActionTransitTypes _transfer = LBActionTransitTypes.Switch)
+		{
+			ActionDeactivatedArgs = new LBActionTransitionEventArgs (this, _in, _transfer); // we set event args, because @base.DeactivateAction riases the event
+
+			if (base.DeactivateAction (_is_internal))
+				return true;
+
+			return false;
+		}
+
+	#endregion
+
+	#region TransferFunctions
+
+		//switch?
+		protected virtual bool CanTransferIn(LBAction _in)
+		{
+			if (!base.CanActivateAction (true)) // проверка, включено ли действие итд
+				return false;
+
+			if (!CanTransferFrom (_in)) // проверка, связано ли с данным действием предыдущее
+				return false;
+
+			return true;
+		}
+
+		//checking for transfer, always internal
+		protected virtual bool CanTransferOut (LBAction _out, LBActionTransitTypes _transfer = LBActionTransitTypes.Switch)
+		{
+			if (_out != output)
+				return false;
+
+			if (_transfer == LBActionTransitTypes.Interrupt)
+			{
+				if (!CheckInterruptAction (_out))
+					return false;
+			}
+			else
+			{
+				if (!CheckSwitchAction (_out))
+					return false;
+			}
+
+			return true;
+		}
+
+
+	#endregion
+
+	#region TransferConditions
 
 		/// <summary>
 		/// This function is called from <c>CanSwitchAction</c>, when <c>transit == LBActionTransitTypes.Interrupt</c>.
@@ -346,6 +410,8 @@ namespace LBActionSystem
 		{
 			return true;
 		}
+
+	#endregion
 				
 		protected bool CanTransferFrom(LBAction prev_action)
 		{

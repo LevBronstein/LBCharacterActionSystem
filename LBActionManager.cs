@@ -14,6 +14,8 @@ namespace LBActionSystem
 		void Start ()
 		{
 			InitActions ();
+
+			ActivateAction ("Default");
 		}
 
 		void Update ()
@@ -29,15 +31,14 @@ namespace LBActionSystem
 			{
 				if (!b1)
 				{
-					ActivateAction ("Default");
-					b1 = true;
+					b1 = ActivateAction ("Stand");
 				}
 			}
 			else
 			{
 				if (b1)
 				{
-					DeactivateAction ("Default");
+					DeactivateAction ("Stand");
 					b1 = false;
 				}
 			}
@@ -46,8 +47,7 @@ namespace LBActionSystem
 			{
 				if (!b2)
 				{
-					ActivateAction ("Walk");
-					b2 = true;
+					b2 = ActivateAction ("Walk");
 				}
 			}
 			else
@@ -70,7 +70,6 @@ namespace LBActionSystem
 				if (Actions [i] != null)
 				{
 					Actions [i] = Actions [i].Duplicate (); 
-					Actions [i].Init (gameObject, this);
 				}
 				else
 				{
@@ -79,6 +78,11 @@ namespace LBActionSystem
 					Actions [i].Init (gameObject, this);
 					k++;
 				}
+			}
+				
+			for (i = 0; i < Actions.Length; i++)
+			{
+				Actions [i].Init (gameObject, this);
 			}
 		}
 
