@@ -37,16 +37,31 @@ namespace LBActionSystem
 			return true;
 		}
 
-		protected override bool TransferIn(LBAction _out, LBActionTransitTypes _transfer = LBActionTransitTypes.Switch)
+		protected override void Activate (LBAction _prev, LBActionTransitTypes _transit)
 		{
-			if (!base.TransferIn (_out, _transfer))
-				return false;
+			base.Activate (_prev, _transit);
 
-			animator.CrossFade (AnimationName, AnimationBlendTime);
-
-			return true;
+			if (AnimationName != string.Empty)
+			{
+				animator.CrossFade (AnimationName, AnimationBlendTime);
+				Debug.Log (string.Format ("Transfered to {0}", this.ActionName));
+			}
 		}
-			
+
+//		protected override bool TransferAction (LBAction _other, LBActionTransitTypes _transit, LBActionTransitDirection _dir)
+//		{
+//			if (!base.TransferAction (_other, _transit, _dir))
+//				return false;
+//
+//			if (_dir == LBActionTransitDirection.In)
+//			{
+//				animator.CrossFade (AnimationName, AnimationBlendTime);
+//				Debug.Log (string.Format ("Transfered to {0}", this.ActionName));
+//			}
+//				
+//			return true;
+//		}
+						
 //		protected override bool DeactivateAction(LBAction _next, bool _is_internal, LBActionTransitTypes _transfer = LBActionTransitTypes.Switch)
 //		{
 //			if (base.DeactivateAction(_next, _is_internal, _transfer))
