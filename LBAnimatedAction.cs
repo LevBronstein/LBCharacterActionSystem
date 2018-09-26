@@ -48,6 +48,17 @@ namespace LBActionSystem
 			}
 		}
 
+//		protected  override void Activate(LBAction[] _prevs, LBActionTransitTypes _transit)
+//		{
+//			base.Activate (_prevs, _transit);
+//
+//			if (AnimationName != string.Empty)
+//			{
+//				animator.CrossFade (AnimationName, AnimationBlendTime);
+//				Debug.Log (string.Format ("Transfered to {0}", this.ActionName));
+//			}
+//		}
+
 //		protected override bool TransferAction (LBAction _other, LBActionTransitTypes _transit, LBActionTransitDirection _dir)
 //		{
 //			if (!base.TransferAction (_other, _transit, _dir))

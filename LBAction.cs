@@ -269,6 +269,22 @@ namespace LBActionSystem
 		{
 		}
 
+		public bool IsConditionalActivation
+		{
+			get 
+			{
+				return ((byte)ActionActivation & (byte)128) != 0;
+			}
+		}
+
+		public bool IsConditionalDeactivation
+		{
+			get 
+			{
+				return ((byte)ActionDeactivation & (byte)128) != 0;
+			}
+		}
+
 		protected void RaiseEvenet_OnActionActivated ()
 		{
 			EventHandler<LBActionEventArgs> handler = ActionActivated;
