@@ -4,43 +4,13 @@ using UnityEngine;
 
 namespace LBActionSystem
 {
-
-	public enum LBRBBaseTypes
-	{
-		Grounded,
-		Airbourne
-	}
-
-	/// <summary>
-	/// This enum briefly describes velocity vector direction in local system
-	/// </summary>
-	public enum LBVectorDirectionTypes
-	{
-		Zero,
-		ZAxis,
-		XAxis,
-		YAxis
-	}
-
-	public struct LBMovementTransferCondition
-	{
-		public bool use_VelocityDirectionFilter;
-		public LBVectorDirectionTypes VelocityDirectionFilter;
-		public bool use_RBVelocityLimit;
-		public float RBVelocityLimit;
-		public bool use_RBBasement;
-		public LBRBBaseTypes RBBasement;
-	}
-
+	[CreateAssetMenu (fileName = "NewMovementAction", menuName = "LBActionSystem/MovementAction")]
 	public class LBMovementAction : LBTransitiveAction
 	{
 		protected Rigidbody rigidbody;
 
 		public Vector3 MovementDir;
 		public float MovementSpeed;
-
-		public LBMovementTransferCondition[] InputConditions;
-		public LBMovementTransferCondition[] OutputConditions;
 
 		public override bool Init (GameObject parentgameobject, LBActionManager manager)
 		{
@@ -55,79 +25,22 @@ namespace LBActionSystem
 			return true;
 		}
 			
-		protected override bool CheckTransferConditions(LBAction _other, LBActionTransitTypes _transit, LBActionTransitDirection _dir) // нужно добавить проверку на наличие связи?
-		{
-			int id;
-
-			if (_dir == LBActionTransitDirection.In)
-			{
-				id = FindInputIndex (_other);
-
-				if (id < 0)
-					return false;
-
-				if (id > InputConditions.Length) // if we don't have condition set for this input
-					return true;
-
-				if (CheckMovementTransferConditions(InputConditions[id]))
-					return true;
-				else
-					return false;
-			}
-			else
-			{
-			}
-			return true; //no conditions in this class
-		}
-
-		protected bool CheckMovementTransferConditions(LBMovementTransferCondition _cond)
-		{
-			if (rigidbody.velocity.magnitude > _cond.RBVelocityLimit)
-				return false;
-
-			// trace down to basement
-
-			if (GetParentBasementType () != _cond.RBBasement)
-				return false;
-
-			return true;
-		}
-			
-		LBRBBaseTypes GetParentBasementType()
-		{
-			Collider c;
-			Ray r;
-			RaycastHit hit;
-
-			c = parent.GetComponent<Collider>();
-
-			if (c == null)
-				return LBRBBaseTypes.Airbourne;
-
-			r = new Ray (c.bounds.center, Vector3.down);
-
-			Debug.DrawRay (r.origin, r.direction, Color.green);
-
-			if (Physics.Raycast (r.origin, r.direction, out hit, c.bounds.extents.y+0.05f)) 
-			{
-				//Debug.Log (hit.transform.gameObject.name);
-				if (hit.transform.gameObject.name != parent.name)
-					return LBRBBaseTypes.Grounded;
-			}
-
-			return LBRBBaseTypes.Airbourne;
-		}
-			
 		protected virtual void PerformMovement ()
 		{
 			rigidbody.velocity = MovementDir.normalized * MovementSpeed;
 			rigidbody.rotation = Quaternion.LookRotation (MovementDir);
 		}
 
-		public override void Tick ()
-		{
-			base.Tick ();
+//		public override void Tick ()
+//		{
+//			base.Tick ();
+//
+//			PerformMovement ();
+//		}
 
+		protected override void TickActive ()
+		{
+			// we can move only when our action is active
 			PerformMovement ();
 		}
 
@@ -163,6 +76,32 @@ namespace LBActionSystem
 //			else
 //				return MM_LocomotionTypes.Moving_AnyDirection;
 //		}
+
+		public override LBActionTickTypes ActionTick 
+		{
+			get 
+			{
+				return LBActionTickTypes.PhysicsTick;
+			}
+		}
+
+		public override LBAction Duplicate ()
+		{
+			LBMovementAction dup;
+
+			dup = (LBMovementAction)CreateInstance(this.GetType());
+			DuplicateProperties (dup);
+
+			return dup;
+		}
+
+		protected override void DuplicateProperties(LBAction dup)
+		{
+			base.DuplicateProperties (dup);
+
+			((LBMovementAction)dup).MovementDir = MovementDir;
+			((LBMovementAction)dup).MovementSpeed = MovementSpeed;
+		}
 
 	}
 }

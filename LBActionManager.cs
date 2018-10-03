@@ -20,7 +20,8 @@ namespace LBActionSystem
 
 		void Update ()
 		{
-			Tick ();
+			GeneralTick ();
+			PhysicsTick ();
 
 			DebugTest ();
 		}
@@ -86,13 +87,25 @@ namespace LBActionSystem
 			}
 		}
 
-		protected virtual void Tick ()
+		protected virtual void GeneralTick ()
 		{
 			int i;
 
 			for (i = 0; i < Actions.Length; i++)
 			{
-				Actions [i].Tick ();
+				if (Actions[i].ActionTick == LBActionTickTypes.GeneralTick)
+					Actions [i].Tick ();
+			}
+		}
+
+		protected virtual void PhysicsTick ()
+		{
+			int i;
+
+			for (i = 0; i < Actions.Length; i++)
+			{
+				if (Actions[i].ActionTick == LBActionTickTypes.PhysicsTick)
+					Actions [i].Tick ();
 			}
 		}
 

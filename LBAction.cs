@@ -47,7 +47,14 @@ namespace LBActionSystem
 		/// </summary>
 		ConditionalInternalOrExternal = 131					//10000011
 	}
-			
+
+	public enum LBActionTickTypes
+	{
+		GeneralTick,
+		PhysicsTick,
+		LateTick
+	}
+
 	public class LBActionEventArgs : EventArgs
 	{
 	}
@@ -150,6 +157,14 @@ namespace LBActionSystem
 			get 
 			{
 				return manager;
+			}
+		}
+
+		public virtual LBActionTickTypes ActionTick 
+		{
+			get 
+			{
+				return LBActionTickTypes.GeneralTick;
 			}
 		}
 
@@ -267,6 +282,14 @@ namespace LBActionSystem
 
 		public virtual void Tick ()
 		{
+			if (this.action_state == LBActionStates.Active)
+				TickActive ();
+		}
+			
+		// Performed only when action state is 'Active'
+		protected virtual void TickActive ()
+		{
+			
 		}
 
 		public bool IsConditionalActivation
@@ -315,6 +338,7 @@ namespace LBActionSystem
 			return string.Format ("[{0} ({1}): \n Action activation type is {2} \n" +
 				"Action deactivation type is {3} \n Action is currently {4}]", ActionName, this.GetType().Name, ActionActivation, ActionDeactivation, ActionState);
 		}
+
 	}
 }
 
