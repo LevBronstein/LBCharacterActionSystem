@@ -31,6 +31,14 @@ namespace LBActionSystem
 			rigidbody.rotation = Quaternion.LookRotation (MovementDir);
 		}
 
+		protected virtual void CheckTransferIn()
+		{
+		}
+
+		protected virtual void CheckTransferOut()
+		{
+		}
+
 //		public override void Tick ()
 //		{
 //			base.Tick ();
@@ -41,7 +49,13 @@ namespace LBActionSystem
 		protected override void TickActive ()
 		{
 			// we can move only when our action is active
+			CheckTransferOut();
 			PerformMovement ();
+		}
+
+		protected override void TickInactive ()
+		{
+			CheckTransferIn();
 		}
 
 		public virtual void SetMovementSpeed(float _speed)

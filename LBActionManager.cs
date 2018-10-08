@@ -30,36 +30,13 @@ namespace LBActionSystem
 		{
 			if (Input.GetKey (KeyCode.Alpha1))
 			{
-				if (!b1)
-				{
-					b1 = ActivateAction ("Stand");
-				}
-			}
-			else
-			{
-				if (b1)
-				{
-					DeactivateAction ("Stand");
-					b1 = false;
-				}
+				b1 = ActivateAction ("Stand");
 			}
 
 			if (Input.GetKey (KeyCode.Alpha2))
 			{
-				if (!b2)
-				{
-					b2 = ActivateAction ("Walk");
-				}
+				b2 = ActivateAction ("Walk");
 			}
-			else
-			{
-				if (b2)
-				{
-					DeactivateAction ("Walk");
-					b2 = false;
-				}
-			}
-
 		}
 
 		protected virtual void InitActions ()

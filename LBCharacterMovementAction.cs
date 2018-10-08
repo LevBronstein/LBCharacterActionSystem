@@ -45,6 +45,8 @@ namespace LBActionSystem
 		public float AnimationBlendTime = 0.1f;
 		public LBActionAnimationTypes AnimationType = LBActionAnimationTypes.Playback;
 
+		protected Vector3 orig_velocity;
+
 		public override bool Init (GameObject _parent, LBActionManager _manager)
 		{
 			if (!base.Init(_parent, _manager))
@@ -70,6 +72,52 @@ namespace LBActionSystem
 				animator.CrossFade (AnimationName, AnimationBlendTime);
 				Debug.Log (string.Format ("Transfered to {0}", this.ActionName));
 			}
+		}
+			
+		//включать и выключать действие?
+		protected override void PerformMovement ()
+		{
+			rigidbody.velocity = MovementDir.normalized * MovementSpeed;
+
+			//orig_velocity = rigidbody.velocity;
+
+//			if (Mathf.Approximately (rigidbody.velocity.magnitude, 0))
+//			{
+//				// need to start moving
+//
+//				if (rigidbody.transform.forward == MovementDir.normalized)
+//				{
+//					// start moving in current direction
+//					rigidbody.velocity = MovementDir.normalized * MovementSpeed;
+//				}
+//				else
+//				{
+//					// start moving in different direction
+//				}
+//			}
+//			else
+//			{
+//				// already moving 
+//
+//				if (rigidbody.velocity.normalized == MovementDir.normalized) 
+//				{
+//					// keep movement
+//
+//					rigidbody.velocity = MovementDir.normalized * MovementSpeed;
+//
+////					if (rigidbody.velocity.magnitude < MovementSpeed)
+////					{
+////						rigidbody.velocity = MovementDir.normalized * MovementSpeed;
+////					}
+//				}
+//				else
+//				{
+//					// need to turn in correct direction
+//				}
+//			}
+//
+//			Debug.DrawRay (rigidbody.transform.position+new Vector3(0,1,0), rigidbody.velocity, new Color (0, 0, 128));
+//			Debug.DrawRay (rigidbody.transform.position+new Vector3(0,1,0), MovementDir, new Color (0, 255, 0));
 		}
 
 //		protected override bool CheckTransferConditions(LBAction _other, LBActionTransitTypes _transit, LBActionTransitDirection _dir) // нужно добавить проверку на наличие связи?

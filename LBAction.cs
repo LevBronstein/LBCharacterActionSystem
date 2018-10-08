@@ -284,10 +284,19 @@ namespace LBActionSystem
 		{
 			if (this.action_state == LBActionStates.Active)
 				TickActive ();
+
+			if (this.action_state == LBActionStates.Inactive)
+				TickInactive ();
 		}
 			
 		// Performed only when action state is 'Active'
 		protected virtual void TickActive ()
+		{
+			
+		}
+
+		// Performed only when action state is 'Inactive'
+		protected virtual void TickInactive ()
 		{
 			
 		}

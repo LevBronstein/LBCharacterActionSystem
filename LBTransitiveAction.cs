@@ -175,7 +175,7 @@ namespace LBActionSystem
 		{		
 			LBAction[] inputs = SelectInputs ();
 
-			if (inputs.Length == 0)
+			if (inputs.Length == 0 && input.Length > 0)
 				return false;
 
 			if (inputs.Length > 1)
@@ -183,10 +183,14 @@ namespace LBActionSystem
 				if (this.TransferMultiAction (inputs, TransferType, LBActionTransitDirection.In))
 					return true;
 			}
+			else if (inputs.Length == 1)
+			{
+				if (this.TransferAction (inputs [0], TransferType, LBActionTransitDirection.In))
+					return true;
+			}
 			else
 			{
-				if (this.TransferAction (inputs[0], TransferType, LBActionTransitDirection.In))
-					return true;
+				// bug!	
 			}
 
 			return false;
@@ -201,7 +205,7 @@ namespace LBActionSystem
 
 			for (i = 0; i < output.Length; i++) 
 			{
-				if (this.CanTransferAction (output [i], TransferType, LBActionTransitDirection.In))
+				if (this.CanTransferAction (output [i], TransferType, LBActionTransitDirection.Out))
 				{
 					Array.Resize (ref res, res.Length + 1);
 					res [res.Length - 1] = output [i];
@@ -216,7 +220,7 @@ namespace LBActionSystem
 		{
 			LBAction[] outputs = SelectOutputs ();
 
-			if (outputs.Length == 0)
+			if (outputs.Length == 0 && output.Length > 0)
 				return false;
 
 			if (outputs.Length > 1)
@@ -224,10 +228,14 @@ namespace LBActionSystem
 				if (this.TransferMultiAction (outputs, TransferType, LBActionTransitDirection.Out))
 					return true;
 			}
-			else
+			else if (outputs.Length == 1)
 			{
 				if (this.TransferAction (outputs[0], TransferType, LBActionTransitDirection.Out))
 					return true;
+			}
+			else
+			{
+				// bug!	
 			}
 
 			return false;
