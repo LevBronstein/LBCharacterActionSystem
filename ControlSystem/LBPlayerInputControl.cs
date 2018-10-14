@@ -8,6 +8,9 @@ namespace LBAControlSystem
 	[RequireComponent (typeof(LBActionManager))]
 	public class LBPlayerInputControl : MonoBehaviour
 	{ 
+		public GameObject TransformBase;
+
+		Transform coords;
 		LBActionManager m;
 
 		void Start ()
@@ -22,12 +25,20 @@ namespace LBAControlSystem
 
 		void PerformControl()
 		{
-			Vector3 v;
+			Vector3 v, x, z;
 
-			v.x = Input.GetAxis ("Horizontal");
-			v.z = Input.GetAxis ("Vertical");
-			v.y = 0;
-				
+			v = Vector3.zero;
+
+			if (TransformBase != null && TransformBase.transform != null)
+			{
+				x = TransformBase.transform.right;
+				z = TransformBase.transform.forward;
+				x.y = 0; x = x.normalized * Input.GetAxisRaw ("Horizontal");
+				z.y = 0; z = z.normalized * Input.GetAxisRaw ("Vertical");
+				v = x + z;
+			}
+				//v = TransformBase.transform.InverseTransformVector (v);
+
 			StartWalk(v);
 		}
 	
@@ -42,15 +53,31 @@ namespace LBAControlSystem
 				{
 					mov = (LBMovementAction)m.AllActions [i];
 
-					if (mov != null && v != Vector3.zero)
+					if (mov != null)
 					{
-						mov.ActivateAction ();
-						mov.SetMovementDir (v);
-						mov.SetMovementSpeed (v.magnitude);
+						
+						mov.SetMovementSpeed(v.magnitude);
+
+						if (v != Vector3.zero)
+						{
+							mov.SetMovementDir (v);
+							mov.ActivateAction ();
+						}
 					}
+
+//					if (mov != null)
+//					{
+//						mov.SetMovementSpeed(v.magnitude);
+//
+//						if (v != Vector3.zero)
+//						{
+//							mov.SetMovementDir (v);
+//							mov.ActivateAction ();
+//						}
+//					}
+						
 				}
 			}
 		}
 	}
-
 }

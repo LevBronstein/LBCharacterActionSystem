@@ -21,7 +21,7 @@ namespace LBActionSystem
 			}
 		}
 
-		protected override void CheckTransferOut()
+		protected override void TrySelfDeactivate()
 		{
 			if (!bHasWalkableFloor () || !bHasPropperSpeed())
 			{
@@ -29,34 +29,9 @@ namespace LBActionSystem
 			}
 		}
 
-		protected bool bHasWalkableFloor()
-		{
-			Collider c;
-			Ray r;
-			RaycastHit hit;
-
-			c = parent.GetComponent<Collider>();
-
-			if (c == null)
-				return false;
-
-			r = new Ray (c.bounds.center, Vector3.down);
-
-			Debug.DrawRay (r.origin, r.direction, Color.green);
-
-			if (Physics.Raycast (r.origin, r.direction, out hit, c.bounds.extents.y+0.05f)) 
-			{
-				//Debug.Log (hit.transform.gameObject.name);
-				if (hit.transform.gameObject.name != parent.name)
-					return true;
-			}
-
-			return false;
-		}
-
 		protected bool bHasPropperSpeed()
 		{
-			if (Mathf.Approximately (rigidbody.velocity.magnitude, 0))
+			if (TruncFloat(rigidbody.velocity.magnitude) == 0)
 				return true;
 			else
 				return false;

@@ -183,6 +183,24 @@ namespace LBActionSystem
 //			return LBRBBaseTypes.Airbourne;
 //		}
 
+		protected bool bHasWalkableFloor()
+		{
+			Collider c;
+			RaycastHit hit;
+
+			c = parent.GetComponent<Collider>();
+
+			if (c == null)
+				return false;
+
+			if (Physics.BoxCast (c.bounds.center, new Vector3(c.bounds.extents.x, 0.15f, c.bounds.extents.z), -c.transform.up, out hit, Quaternion.LookRotation(-c.transform.up), c.bounds.extents.y))
+			{
+				if (hit.transform.gameObject.name != parent.name)
+					return true;
+			}
+
+			return false;
+		}
 
 		public override LBAction Duplicate ()
 		{

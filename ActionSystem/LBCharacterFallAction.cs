@@ -16,53 +16,28 @@ namespace LBActionSystem
 		{
 			if (_dir == LBActionTransitDirection.In)
 			{
-				return bHasNoFloor ();
+				return !bHasWalkableFloor ();
 			}
 			else
 			{
-				return !bHasNoFloor ();
+				return bHasWalkableFloor ();
 			}
 		}
 
-		protected override void CheckTransferIn()
+		protected override void TrySelfActivate()
 		{
-			if (bHasNoFloor ())
+			if (!bHasWalkableFloor ())
 			{
 				ActivateAction ();
 			}
 		}
 
-		protected override void CheckTransferOut()
+		protected override void TrySelfDeactivate()
 		{
-			if (!bHasNoFloor ())
+			if (bHasWalkableFloor ())
 			{
 				DeactivateAction ();
 			}
-		}
-
-		protected bool bHasNoFloor()
-		{
-			Collider c;
-			Ray r;
-			RaycastHit hit;
-
-			c = parent.GetComponent<Collider>();
-
-			if (c == null)
-				return true;
-
-			r = new Ray (c.bounds.center, Vector3.down);
-
-			Debug.DrawRay (r.origin, r.direction, Color.green);
-
-			if (Physics.Raycast (r.origin, r.direction, out hit, c.bounds.extents.y+0.05f)) 
-			{
-				//Debug.Log (hit.transform.gameObject.name);
-				if (hit.transform.gameObject.name != parent.name)
-					return false;
-			}
-
-			return true;
 		}
 
 	}

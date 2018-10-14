@@ -31,11 +31,11 @@ namespace LBActionSystem
 			rigidbody.rotation = Quaternion.LookRotation (MovementDir);
 		}
 
-		protected virtual void CheckTransferIn()
+		protected virtual void TrySelfActivate()
 		{
 		}
 
-		protected virtual void CheckTransferOut()
+		protected virtual void TrySelfDeactivate()
 		{
 		}
 
@@ -49,13 +49,13 @@ namespace LBActionSystem
 		protected override void TickActive ()
 		{
 			// we can move only when our action is active
-			CheckTransferOut();
 			PerformMovement ();
+			TrySelfDeactivate();
 		}
 
 		protected override void TickInactive ()
 		{
-			CheckTransferIn();
+			TrySelfActivate();
 		}
 
 		public virtual void SetMovementSpeed(float _speed)
@@ -96,6 +96,110 @@ namespace LBActionSystem
 			get 
 			{
 				return LBActionTickTypes.PhysicsTick;
+			}
+		}
+
+		protected float TruncFloat(float f, byte numbers=3)
+		{
+			return (float)System.Math.Truncate (f * (int)System.Math.Pow(10,numbers)) / (int)System.Math.Pow(10,numbers);
+		}
+
+		protected float LerpFloat(float current, float target, float step, float dt)
+		{
+			float value;
+
+			if (Mathf.Abs(current - target) > Mathf.Abs(step))
+			{
+				if (current < target)
+					value = current + Mathf.Abs (step);
+				else
+					value = current - Mathf.Abs (step);  
+			}
+			else
+			{
+				if (current < target)
+					value = current + Mathf.Abs (current - target);
+				else
+					value = current - Mathf.Abs (current - target);     
+			}
+
+			return value;
+		}
+
+		protected float LerpAngle(float current, float target, float step, float dt)
+		{
+			float value;
+
+			if (current < target)
+			{
+				if (Mathf.Abs(target-current) < 180)
+				{
+					if (Mathf.Abs (current - target) > Mathf.Abs (step))
+						value = current + step;
+					else
+						value = current + Mathf.Abs (current - target);
+				}
+				else
+				{
+					if (Mathf.Abs (current - target) > Mathf.Abs (step))
+						value = current - step;
+					else
+						value = current - Mathf.Abs (current - target);
+
+					if (value < 0)
+						value = value + 360;
+				}    
+			}
+			else
+			{
+				if (Mathf.Abs (target-current) < 180)
+				{
+					if (Mathf.Abs (current - target) > Mathf.Abs (step))
+						value = current - step;
+					else
+						value = current - Mathf.Abs (current - target);
+				}
+				else
+				{
+					if (Mathf.Abs (current - target) > Mathf.Abs (step))
+						value = current + step;
+					else
+						value = current + Mathf.Abs (current - target);
+
+					if (value > 360)
+						value = value - 360;
+				}        
+			}
+
+			return value;
+		}
+			
+//		protected float SingedAngle(Vector3 v1, Vector3 v2, Vector3 n)
+//		{
+//			return Mathf.Atan2 (Vector3.Dot (n, Vector3.Cross (v1, v2)), Vector3.Dot (v1, v2) * Mathf.Rad2Deg);
+//		}
+
+		public float RBSpeed
+		{
+			get 
+			{
+				return rigidbody.velocity.magnitude;	
+			}
+		}
+
+		public Vector3 RBSpeedDir
+		{
+			get 
+			{
+				return rigidbody.velocity.normalized;	
+			}
+		}
+
+		public Vector3 RBForwardDir
+		{
+			get 
+			{
+				return rigidbody.transform.forward;	
 			}
 		}
 
