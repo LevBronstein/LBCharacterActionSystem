@@ -120,6 +120,10 @@ namespace LBActionSystem
 //			Debug.DrawRay (rigidbody.transform.position+new Vector3(0,1,0), MovementDir, new Color (0, 255, 0));
 		}
 
+		protected virtual void PerformAnimation ()
+		{
+		}
+
 //		protected override bool CheckTransferConditions(LBAction _other, LBActionTransitTypes _transit, LBActionTransitDirection _dir) // нужно добавить проверку на наличие связи?
 //		{
 //			int id;

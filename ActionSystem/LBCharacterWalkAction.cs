@@ -20,7 +20,21 @@ namespace LBActionSystem
 	[CreateAssetMenu (fileName = "NewCharacterWalkAction", menuName = "LBActionSystem/CharacterWalkAction")]
 	public class LBCharacterWalkAction : LBCharacterMovementAction 
 	{
-		public float BaseMovementSpeed;
+		/// <summary>
+		/// A value of the maximum availiable movement speed for the character in this state in Unity units. Modified by a coefficient.
+		/// </summary>
+		public float BaseMovementSpeed = 3.0f;
+		/// <summary>
+		/// A value of the constant rotation speed for the character in this state.
+		/// </summary>
+		public float BaseRotationSpeed = 5.0f;
+		/// <summary>
+		/// A value of the constant acceleration during movement for the character in this state.
+		/// </summary>
+		public float MovementAcceleration = 0.15f;
+
+		public string CharVelocityParamName = "CharVelocityNorm";
+		public string CharDeltaRotParamName = "CharDeltaRotNorm";
 
 		public LBSpeedRestraint SpeedRestraintIn;
 		public LBSpeedRestraint SpeedRestraintOut;
@@ -30,25 +44,48 @@ namespace LBActionSystem
 //		public float MinSpeedLimit = 0.0f; // Min amount of forward speed
 //		public float MaxSpeedLimit = 3.0f;
 
-		protected virtual void Move()
+		protected virtual void Move() // Time.deltaTime ???
 		{
 			float curspd, destspd;
 
 			destspd = Mathf.Clamp (BaseMovementSpeed * Mathf.Clamp01 (MovementSpeed), SpeedRestraintOut.MinSpeed, SpeedRestraintOut.MaxSpeed);
-			curspd = LerpFloat (idealvelocity.magnitude, destspd, 0.15f, Time.fixedDeltaTime);
+			curspd = LerpFloat (idealvelocity.magnitude, destspd, MovementAcceleration, Time.fixedDeltaTime);
 			idealvelocity = RBForwardDir.normalized * curspd;
 			rigidbody.velocity = idealvelocity;
+
+			if (animator != null)
+			{
+				animator.SetFloat (CharVelocityParamName, curspd / BaseMovementSpeed);
+			}
 		}
 
 		protected virtual void Rotate()
 		{
 			float currot, destrot;
 
-			Debug.Log (MovementDir);
+			//Debug.Log (MovementDir);
 			destrot = Vector3.SignedAngle (RBForwardDir, new Vector3 (MovementDir.x, 0, MovementDir.z), Vector3.up);
 			//destrot = SingedAngle(RBForwardDir, MovementDir, Vector3.up);
-			currot = LerpFloat (0, TruncFloat(destrot,1), 5, Time.fixedTime);
+			currot = LerpFloat (0, TruncFloat(destrot,1), BaseRotationSpeed, Time.fixedTime);
 			rigidbody.rotation = Quaternion.LookRotation (Quaternion.AngleAxis (TruncFloat(currot), Vector3.up) * RBForwardDir);
+			//Debug.Log (destrot);
+			if (animator != null)
+			{
+				float lastrot, newrot;
+
+				lastrot = animator.GetFloat (CharDeltaRotParamName) * 180;
+
+				newrot = LerpFloat (lastrot, destrot, BaseRotationSpeed, Time.fixedTime) / 180;
+
+				animator.SetFloat (CharDeltaRotParamName, newrot);
+
+//				if (Mathf.Sign (lastrot) == Mathf.Sign (newrot))
+//					animator.SetFloat (CharDeltaRotParamName, newrot);
+//				else
+//				{
+//					
+//				}
+			}
 		}
 
 		protected override void PerformMovement ()
@@ -107,7 +144,6 @@ namespace LBActionSystem
 //
 //			return false;
 //		}
-	
 		protected bool bHasPropperTransferInSpeed()
 		{
 			if (rigidbody.velocity != Vector3.zero)
@@ -202,6 +238,8 @@ namespace LBActionSystem
 			((LBCharacterWalkAction)dup).SpeedRestraintIn = SpeedRestraintIn;
 			((LBCharacterWalkAction)dup).SpeedRestraintOut = SpeedRestraintOut;
 			((LBCharacterWalkAction)dup).BaseMovementSpeed = BaseMovementSpeed;
+			((LBCharacterWalkAction)dup).BaseRotationSpeed = BaseRotationSpeed;
+			((LBCharacterWalkAction)dup).MovementAcceleration = MovementAcceleration;
 		}
 	
 	}
