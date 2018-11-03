@@ -124,6 +124,22 @@ namespace LBActionSystem
 		{
 		}
 
+		public float AnimationTime
+		{
+			get 
+			{
+				if (animator != null) // We don't know, which animation we're playing currently
+					return Mathf.Clamp01 (animator.GetCurrentAnimatorStateInfo (AnimationLayer).normalizedTime);
+				else
+					return 1;
+			}
+		}
+
+		protected void RewindAnimation()
+		{
+			animator.Play (AnimationName, AnimationLayer, 0);
+		}
+
 //		protected override bool CheckTransferConditions(LBAction _other, LBActionTransitTypes _transit, LBActionTransitDirection _dir) // нужно добавить проверку на наличие связи?
 //		{
 //			int id;

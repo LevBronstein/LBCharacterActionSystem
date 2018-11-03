@@ -271,7 +271,7 @@ namespace LBActionSystem
 		//			return null;
 		//		}
 			
-		LBAction FindAction (string action)
+		public LBAction FindAction (string action)
 		{
 			int i;
 

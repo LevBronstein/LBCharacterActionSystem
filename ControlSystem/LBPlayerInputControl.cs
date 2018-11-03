@@ -40,6 +40,9 @@ namespace LBAControlSystem
 				//v = TransformBase.transform.InverseTransformVector (v);
 
 			StartWalk(v);
+
+			if (Input.GetKey (KeyCode.Space))
+				StartJump ();
 		}
 	
 		void StartWalk(Vector3 v)
@@ -79,5 +82,16 @@ namespace LBAControlSystem
 				}
 			}
 		}
+	
+		void StartJump()
+		{
+			LBCharacterAnimAction jmp;
+
+			jmp = (LBCharacterAnimAction)m.FindAction ("Jump");
+
+			if (jmp != null)
+				jmp.ActivateAction ();
+		}
+	
 	}
 }

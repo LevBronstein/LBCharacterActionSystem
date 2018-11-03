@@ -33,6 +33,7 @@ namespace LBActionSystem
 		/// </summary>
 		public float MovementAcceleration = 0.15f;
 
+		//Animation paramteres' names in the animator
 		public string CharVelocityParamName = "CharVelocityNorm";
 		public string CharDeltaRotParamName = "CharDeltaRotNorm";
 
@@ -75,7 +76,7 @@ namespace LBActionSystem
 
 				lastrot = animator.GetFloat (CharDeltaRotParamName) * 180;
 
-				newrot = LerpFloat (lastrot, destrot, BaseRotationSpeed, Time.fixedTime) / 180;
+				newrot = LerpFloat (lastrot, destrot, BaseRotationSpeed * 10, Time.fixedTime) / 180;
 
 				animator.SetFloat (CharDeltaRotParamName, newrot);
 
