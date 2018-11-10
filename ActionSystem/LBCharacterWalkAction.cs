@@ -107,12 +107,17 @@ namespace LBActionSystem
 			}
 		}
 
-		protected override void TrySelfDeactivate()
+//		protected override void TrySelfDeactivate()
+//		{
+//			if (!bHasWalkableFloor () || bHasPropperTransferOutSpeed())
+//			{
+//				DeactivateAction ();
+//			}
+//		}
+
+		protected override bool CheckSelfDeactivationCondtions ()
 		{
-			if (!bHasWalkableFloor () || bHasPropperTransferOutSpeed())
-			{
-				DeactivateAction ();
-			}
+			return !bHasWalkableFloor () || bHasPropperTransferOutSpeed();
 		}
 
 //		protected bool bHasWalkableFloor()

@@ -24,10 +24,28 @@ namespace LBActionSystem
 
 		protected virtual void TrySelfActivate()
 		{
+			if (CheckSelfActivationCondtions ())
+			{
+				ActivateAction ();
+			}
 		}
 
 		protected virtual void TrySelfDeactivate()
 		{
+			if (CheckSelfDeactivationCondtions ())
+			{
+				DeactivateAction ();
+			}
+		}
+
+		protected virtual bool CheckSelfActivationCondtions()
+		{
+			return false;
+		}
+
+		protected virtual bool CheckSelfDeactivationCondtions()
+		{
+			return false;
 		}
 
 		protected override void TickActive ()
@@ -141,6 +159,14 @@ namespace LBActionSystem
 			get 
 			{
 				return rigidbody.velocity.normalized;	
+			}
+		}
+
+		public Vector3 RBSpeedVector
+		{
+			get 
+			{
+				return rigidbody.velocity;	
 			}
 		}
 

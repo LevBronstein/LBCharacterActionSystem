@@ -16,7 +16,7 @@ namespace LBActionSystem
 		{
 			if (_dir == LBActionTransitDirection.In)
 			{
-				return !bHasWalkableFloor ();
+				return true; //!bHasWalkableFloor ();
 			}
 			else
 			{

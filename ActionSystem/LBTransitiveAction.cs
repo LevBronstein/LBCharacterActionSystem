@@ -272,6 +272,9 @@ namespace LBActionSystem
 					if (!other.HasOutputConn (this)) // if _other action is not connected to this
 						return false;
 
+					if (other.ActionState == LBActionStates.Inactive || other.ActionState == LBActionStates.Disabled)
+						return false;
+					
 					if (other.IsConditionalDeactivation && other.CheckTransferConditions (this, _transit, LBActionTransitDirection.Out )  || !other.IsConditionalDeactivation)
 						return true;
 				}

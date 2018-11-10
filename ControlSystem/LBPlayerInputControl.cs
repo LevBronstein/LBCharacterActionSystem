@@ -29,8 +29,8 @@ namespace LBAControlSystem
 
 			StartWalk(v);
 
-//			if (Input.GetKey (KeyCode.Space))
-//				StartJump ();
+			if (Input.GetKey (KeyCode.Space))
+				StartJump ();
 		}
 	
 		void StartWalk(Vector3 v)
@@ -71,15 +71,15 @@ namespace LBAControlSystem
 			}
 		}
 	
-//		void StartJump()
-//		{
-//			LBCharacterGenericAction jmp;
-//
-//			jmp = (LBCharacterGenericAction)m.FindAction ("Jump");
-//
-//			if (jmp != null)
-//				jmp.ActivateAction ();
-//		}
+		void StartJump()
+		{
+			LBCharacterJumpAction jmp;
+
+			jmp = (LBCharacterJumpAction)m.FindAction ("Jump");
+
+			if (jmp != null)
+				jmp.ActivateAction ();
+		}
 	
 	}
 }

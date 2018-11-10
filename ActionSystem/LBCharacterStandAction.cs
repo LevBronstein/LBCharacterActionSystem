@@ -21,13 +21,13 @@ namespace LBActionSystem
 			}
 		}
 
-		protected override void TrySelfDeactivate()
-		{
-			if (!bHasWalkableFloor () || !bHasPropperSpeed())
-			{
-				DeactivateAction ();
-			}
-		}
+//		protected override void TrySelfDeactivate()
+//		{
+//			if (!bHasWalkableFloor () || !bHasPropperSpeed())
+//			{
+//				DeactivateAction ();
+//			}
+//		}
 
 		protected bool bHasPropperSpeed()
 		{

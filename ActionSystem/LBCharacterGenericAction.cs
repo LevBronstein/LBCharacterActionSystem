@@ -47,33 +47,46 @@ namespace LBActionSystem
 			return true;
 		}
 
-		protected override void TrySelfDeactivate()
+		protected override bool CheckSelfDeactivationCondtions ()
 		{
-			if (AnimationName == string.Empty)
-			{
-				DeactivateAction ();
-				return;
-			}
-
-			if (AnimationTime >= 1)
-			{
-				// We need to self-deactivate only if we
-				if (ActionPerfomacneType == LBActionPerformanceTypes.PerformOnce || ActionPerfomacneType == LBActionPerformanceTypes.PerformOnceModal)
-				{
-					DeactivateAction ();
-				}
-//				else
-//				{
-//					RewindAnimation ();
-//				}
-			}
+			return (AnimationName == string.Empty) || (AnimationTime >= 1) &&  (ActionPerfomacneType == LBActionPerformanceTypes.PerformOnce || ActionPerfomacneType == LBActionPerformanceTypes.PerformOnceModal);
 		}
+
+//		protected override void TrySelfDeactivate()
+//		{
+//			if (AnimationName == string.Empty)
+//			{
+//				DeactivateAction ();
+//				return;
+//			}
+//
+//			if (AnimationTime >= 1)
+//			{
+//				// We need to self-deactivate only if we
+//				if (ActionPerfomacneType == LBActionPerformanceTypes.PerformOnce || ActionPerfomacneType == LBActionPerformanceTypes.PerformOnceModal)
+//				{
+//					DeactivateAction ();
+//				}
+////				else
+////				{
+////					RewindAnimation ();
+////				}
+//			}
+//		}
 
 		public LBActionPerformanceTypes ActionPerfomacneType
 		{
 			get 
 			{
 				return PerformaceType;
+			}
+		}
+
+		public override LBAnimationTransitionTypes AnimationTrasnitionType
+		{
+			get
+			{
+				return LBAnimationTransitionTypes.Play;
 			}
 		}
 
