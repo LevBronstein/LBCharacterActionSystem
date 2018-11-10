@@ -4,13 +4,10 @@ using UnityEngine;
 
 namespace LBActionSystem
 {
-	[CreateAssetMenu (fileName = "NewMovementAction", menuName = "LBActionSystem/MovementAction")]
-	public class LBMovementAction : LBTransitiveAction
+	//[CreateAssetMenu (fileName = "NewMovementAction", menuName = "LBActionSystem/MovementAction")]
+	public class LBCharacterPhysicsAction : LBCharacterAnimatedAction
 	{
 		protected Rigidbody rigidbody;
-
-		public Vector3 MovementDir;
-		public float MovementSpeed;
 
 		public override bool Init (GameObject parentgameobject, LBActionManager manager)
 		{
@@ -24,12 +21,6 @@ namespace LBActionSystem
 
 			return true;
 		}
-			
-		protected virtual void PerformMovement ()
-		{
-			rigidbody.velocity = MovementDir.normalized * MovementSpeed;
-			rigidbody.rotation = Quaternion.LookRotation (MovementDir);
-		}
 
 		protected virtual void TrySelfActivate()
 		{
@@ -39,17 +30,8 @@ namespace LBActionSystem
 		{
 		}
 
-//		public override void Tick ()
-//		{
-//			base.Tick ();
-//
-//			PerformMovement ();
-//		}
-
 		protected override void TickActive ()
 		{
-			// we can move only when our action is active
-			PerformMovement ();
 			TrySelfDeactivate();
 		}
 
@@ -57,39 +39,6 @@ namespace LBActionSystem
 		{
 			TrySelfActivate();
 		}
-
-		public virtual void SetMovementSpeed(float _speed)
-		{
-			MovementSpeed = _speed;
-		}
-
-		public virtual void SetMovementDir(Vector3 _dir)
-		{
-			MovementDir = _dir;
-		}
-
-//		protected LBVectorDirectionTypes GetParentLocomotionType()
-//		{
-//			float mov_hor, mov_vert;
-//
-//			mov_hor = Mathf.Sqrt(rigidbody.velocity.x * rigidbody.velocity.x + rigidbody.velocity.y * rigidbody.velocity.y);
-//			mov_vert = Mathf.Abs(rigidbody.velocity.z);
-//
-//			if (Mathf.Abs(mov_hor) > 0 && Mathf.Approximately(mov_vert, 0.0f)) 
-//			{
-//				return MM_LocomotionTypes.Moving_Horizontal;
-//			}
-//			else if (Mathf.Approximately(mov_hor, 0.0f) && Mathf.Abs(mov_vert) > 0)
-//			{
-//				return MM_LocomotionTypes.Moving_Vertical;
-//			}
-//			else if (Mathf.Approximately(mov_hor, 0.0f) && Mathf.Approximately(mov_vert, 0.0f))
-//			{
-//				return MM_LocomotionTypes.Static;
-//			}
-//			else
-//				return MM_LocomotionTypes.Moving_AnyDirection;
-//		}
 
 		public override LBActionTickTypes ActionTick 
 		{
@@ -205,9 +154,9 @@ namespace LBActionSystem
 
 		public override LBAction Duplicate ()
 		{
-			LBMovementAction dup;
+			LBCharacterPhysicsAction dup;
 
-			dup = (LBMovementAction)CreateInstance(this.GetType());
+			dup = (LBCharacterPhysicsAction)CreateInstance(this.GetType());
 			DuplicateProperties (dup);
 
 			return dup;
@@ -217,8 +166,8 @@ namespace LBActionSystem
 		{
 			base.DuplicateProperties (dup);
 
-			((LBMovementAction)dup).MovementDir = MovementDir;
-			((LBMovementAction)dup).MovementSpeed = MovementSpeed;
+//			((LBTransPhysicsAction)dup).MovementDir = MovementDir;
+//			((LBTransPhysicsAction)dup).MovementSpeed = MovementSpeed;
 		}
 
 	}

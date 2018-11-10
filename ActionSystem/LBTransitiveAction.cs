@@ -188,9 +188,9 @@ namespace LBActionSystem
 				if (this.TransferAction (inputs [0], TransferType, LBActionTransitDirection.In))
 					return true;
 			}
-			else
+			else if (inputs.Length == 0 && input.Length == 0) // has no inputs, can be activated
 			{
-				// bug!	
+				this.Activate ();
 			}
 
 			return false;

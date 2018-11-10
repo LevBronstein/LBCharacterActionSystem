@@ -33,176 +33,47 @@ namespace LBActionSystem
 //	}
 
 	[CreateAssetMenu (fileName = "NewCharacterMovementAction", menuName = "LBActionSystem/CharacterMovementAction")]
-	public class LBCharacterMovementAction : LBMovementAction 
+	public class LBCharacterMovementAction : LBCharacterPhysicsAction 
 	{
 //		public LBMovementTransferCondition[] InputConditions;
 //		public LBMovementTransferCondition[] OutputConditions;
 
-		protected Animator animator = null;
+//		protected Animator animator = null;
+//
+//		public string AnimationName = string.Empty;
+//		public int AnimationLayer = 0;
+//		public float AnimationBlendTime = 0.1f;
+//		public LBActionAnimationTypes AnimationType = LBActionAnimationTypes.Playback;
 
-		public string AnimationName = string.Empty;
-		public int AnimationLayer = 0;
-		public float AnimationBlendTime = 0.1f;
-		public LBActionAnimationTypes AnimationType = LBActionAnimationTypes.Playback;
+		public Vector3 MovementDir;
+		public float MovementSpeed;
 
 		protected Vector3 orig_velocity;
 
-		public override bool Init (GameObject _parent, LBActionManager _manager)
-		{
-			if (!base.Init(_parent, _manager))
-				return false;
-
-			animator = _parent.GetComponent<Animator> ();
-
-			if (animator == null) 
-			{
-				ReportProblem ("animator in " + _parent.ToString () + " not found!");
-				return false;
-			}
-
-			return true;
-		}
-
-		protected override void Activate (LBAction _prev, LBActionTransitTypes _transit)
-		{
-			base.Activate (_prev, _transit);
-
-			if (AnimationName != string.Empty)
-			{
-				animator.CrossFade (AnimationName, AnimationBlendTime);
-				Debug.Log (string.Format ("Transfered to {0}", this.ActionName));
-			}
-		}
-			
-		//включать и выключать действие?
-		protected override void PerformMovement ()
+		protected virtual void PerformMovement ()
 		{
 			rigidbody.velocity = MovementDir.normalized * MovementSpeed;
-
-			//orig_velocity = rigidbody.velocity;
-
-//			if (Mathf.Approximately (rigidbody.velocity.magnitude, 0))
-//			{
-//				// need to start moving
-//
-//				if (rigidbody.transform.forward == MovementDir.normalized)
-//				{
-//					// start moving in current direction
-//					rigidbody.velocity = MovementDir.normalized * MovementSpeed;
-//				}
-//				else
-//				{
-//					// start moving in different direction
-//				}
-//			}
-//			else
-//			{
-//				// already moving 
-//
-//				if (rigidbody.velocity.normalized == MovementDir.normalized) 
-//				{
-//					// keep movement
-//
-//					rigidbody.velocity = MovementDir.normalized * MovementSpeed;
-//
-////					if (rigidbody.velocity.magnitude < MovementSpeed)
-////					{
-////						rigidbody.velocity = MovementDir.normalized * MovementSpeed;
-////					}
-//				}
-//				else
-//				{
-//					// need to turn in correct direction
-//				}
-//			}
-//
-//			Debug.DrawRay (rigidbody.transform.position+new Vector3(0,1,0), rigidbody.velocity, new Color (0, 0, 128));
-//			Debug.DrawRay (rigidbody.transform.position+new Vector3(0,1,0), MovementDir, new Color (0, 255, 0));
+			if (MovementDir != Vector3.zero)
+				rigidbody.rotation = Quaternion.LookRotation (MovementDir);
 		}
 
-		protected virtual void PerformAnimation ()
+		protected override void TickActive ()
 		{
+			// we can move only when our action is active
+			base.TickActive ();
+			PerformMovement ();
 		}
 
-		public float AnimationTime
+		public virtual void SetMovementSpeed(float _speed)
 		{
-			get 
-			{
-				if (animator != null) // We don't know, which animation we're playing currently
-					return Mathf.Clamp01 (animator.GetCurrentAnimatorStateInfo (AnimationLayer).normalizedTime);
-				else
-					return 1;
-			}
+			MovementSpeed = _speed;
 		}
 
-		protected void RewindAnimation()
+		public virtual void SetMovementDir(Vector3 _dir)
 		{
-			animator.Play (AnimationName, AnimationLayer, 0);
+			MovementDir = _dir;
 		}
-
-//		protected override bool CheckTransferConditions(LBAction _other, LBActionTransitTypes _transit, LBActionTransitDirection _dir) // нужно добавить проверку на наличие связи?
-//		{
-//			int id;
-//
-//			if (_dir == LBActionTransitDirection.In)
-//			{
-//				id = FindInputIndex (_other);
-//
-//				if (id < 0)
-//					return false;
-//
-//				if (id > InputConditions.Length) // if we don't have condition set for this input
-//					return true;
-//
-//				if (CheckMovementTransferConditions(InputConditions[id]))
-//					return true;
-//				else
-//					return false;
-//			}
-//			else
-//			{
-//			}
-//			return true; //no conditions in this class
-//		}
-//
-//		protected bool CheckMovementTransferConditions(LBMovementTransferCondition _cond)
-//		{
-//			if (rigidbody.velocity.magnitude > _cond.RBVelocityLimit)
-//				return false;
-//
-//			// trace down to basement
-//
-//			if (GetParentBasementType () != _cond.RBBasement)
-//				return false;
-//
-//			return true;
-//		}
-//
-//		LBRBBaseTypes GetParentBasementType()
-//		{
-//			Collider c;
-//			Ray r;
-//			RaycastHit hit;
-//
-//			c = parent.GetComponent<Collider>();
-//
-//			if (c == null)
-//				return LBRBBaseTypes.Airbourne;
-//
-//			r = new Ray (c.bounds.center, Vector3.down);
-//
-//			Debug.DrawRay (r.origin, r.direction, Color.green);
-//
-//			if (Physics.Raycast (r.origin, r.direction, out hit, c.bounds.extents.y+0.05f)) 
-//			{
-//				//Debug.Log (hit.transform.gameObject.name);
-//				if (hit.transform.gameObject.name != parent.name)
-//					return LBRBBaseTypes.Grounded;
-//			}
-//
-//			return LBRBBaseTypes.Airbourne;
-//		}
-
+			
 		protected bool bHasWalkableFloor()
 		{
 			Collider c;
@@ -222,6 +93,14 @@ namespace LBActionSystem
 			return false;
 		}
 
+		public override LBAnimationTransitionTypes AnimationTrasnitionType
+		{
+			get
+			{
+				return LBAnimationTransitionTypes.Crossfade;
+			}
+		}
+
 		public override LBAction Duplicate ()
 		{
 			LBCharacterMovementAction dup;
@@ -236,10 +115,18 @@ namespace LBActionSystem
 		{
 			base.DuplicateProperties (dup);
 
-			((LBCharacterMovementAction)dup).AnimationName = AnimationName;
-			((LBCharacterMovementAction)dup).AnimationLayer = AnimationLayer;
-			((LBCharacterMovementAction)dup).AnimationBlendTime = AnimationBlendTime;
-			((LBCharacterMovementAction)dup).AnimationType = AnimationType;
+			((LBCharacterMovementAction)dup).MovementDir = MovementDir;
+			((LBCharacterMovementAction)dup).MovementSpeed = MovementSpeed;
 		}
+
+//		protected override void DuplicateProperties(LBAction dup)
+//		{
+//			base.DuplicateProperties (dup);
+//
+//			((LBCharacterMovementAction)dup).AnimationName = AnimationName;
+//			((LBCharacterMovementAction)dup).AnimationLayer = AnimationLayer;
+//			((LBCharacterMovementAction)dup).AnimationBlendTime = AnimationBlendTime;
+//			((LBCharacterMovementAction)dup).AnimationType = AnimationType;
+//		}
 	}
 }

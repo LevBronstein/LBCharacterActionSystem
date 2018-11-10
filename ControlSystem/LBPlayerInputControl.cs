@@ -5,25 +5,13 @@ using LBActionSystem;
 
 namespace LBAControlSystem
 {
-	[RequireComponent (typeof(LBActionManager))]
-	public class LBPlayerInputControl : MonoBehaviour
+	public class LBPlayerInputControl : LBPlayerInputControlBase
 	{ 
 		public GameObject TransformBase;
 
 		Transform coords;
-		LBActionManager m;
 
-		void Start ()
-		{
-			m = GetComponent<LBActionManager> ();
-		}
-
-		void Update ()
-		{
-			PerformControl ();
-		}
-
-		void PerformControl()
+		protected override void PerformControl()
 		{
 			Vector3 v, x, z;
 
@@ -41,20 +29,20 @@ namespace LBAControlSystem
 
 			StartWalk(v);
 
-			if (Input.GetKey (KeyCode.Space))
-				StartJump ();
+//			if (Input.GetKey (KeyCode.Space))
+//				StartJump ();
 		}
 	
 		void StartWalk(Vector3 v)
 		{
-			LBMovementAction mov;
+			LBCharacterMovementAction mov;
 			int i;
 
 			for (i = 0; i < m.AllActions.Length; i++)
 			{
 				if (m.AllActions [i].ActionName == "Walk")
 				{
-					mov = (LBMovementAction)m.AllActions [i];
+					mov = (LBCharacterMovementAction)m.AllActions [i];
 
 					if (mov != null)
 					{
@@ -83,15 +71,15 @@ namespace LBAControlSystem
 			}
 		}
 	
-		void StartJump()
-		{
-			LBCharacterAnimAction jmp;
-
-			jmp = (LBCharacterAnimAction)m.FindAction ("Jump");
-
-			if (jmp != null)
-				jmp.ActivateAction ();
-		}
+//		void StartJump()
+//		{
+//			LBCharacterGenericAction jmp;
+//
+//			jmp = (LBCharacterGenericAction)m.FindAction ("Jump");
+//
+//			if (jmp != null)
+//				jmp.ActivateAction ();
+//		}
 	
 	}
 }
