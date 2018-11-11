@@ -29,6 +29,14 @@ namespace LBActionSystem
 //			}
 //		}
 
+		public override LBAnimationTransitionTypes AnimationTrasnitionType
+		{
+			get
+			{
+				return LBAnimationTransitionTypes.Crossfade;
+			}
+		}
+
 		protected bool bHasPropperSpeed()
 		{
 			if (TruncFloat(rigidbody.velocity.magnitude) == 0)

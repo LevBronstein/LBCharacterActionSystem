@@ -22,7 +22,7 @@ namespace LBActionSystem
 	{
 		//public LBActionAnimationTypes AnimationType = LBActionAnimationTypes.Playback;
 
-		public LBActionPerformanceTypes PerformaceType;
+		//public LBActionPerformanceTypes PerformaceType;
 
 		protected override void Activate (LBAction _prev, LBActionTransitTypes _transit)
 		{
@@ -49,7 +49,13 @@ namespace LBActionSystem
 
 		protected override bool CheckSelfDeactivationCondtions ()
 		{
-			return (AnimationName == string.Empty) || (AnimationTime >= 1) &&  (ActionPerfomacneType == LBActionPerformanceTypes.PerformOnce || ActionPerfomacneType == LBActionPerformanceTypes.PerformOnceModal);
+			if (AnimationName == string.Empty)
+				return true;
+
+			if ((AnimationTime >= 1) &&  (ActionPerfomacneType == LBActionPerformanceTypes.PerformOnce || ActionPerfomacneType == LBActionPerformanceTypes.PerformOnceModal))
+				return  true;
+
+			return false;
 		}
 
 //		protected override void TrySelfDeactivate()
@@ -78,7 +84,7 @@ namespace LBActionSystem
 		{
 			get 
 			{
-				return PerformaceType;
+				return LBActionPerformanceTypes.PerformOnceModal;
 			}
 		}
 
@@ -92,21 +98,21 @@ namespace LBActionSystem
 
 		protected override void PerformMovement () {}
 
-		public override LBAction Duplicate ()
-		{
-			LBCharacterAnimatedAction dup;
-
-			dup = (LBCharacterGenericAction)CreateInstance(this.GetType());
-			DuplicateProperties (dup);
-
-			return dup;
-		}
-
-		protected override void DuplicateProperties(LBAction dup)
-		{
-			base.DuplicateProperties (dup);
-
-			((LBCharacterGenericAction)dup).PerformaceType = PerformaceType;
-		}
+//		public override LBAction Duplicate ()
+//		{
+//			LBCharacterAnimatedAction dup;
+//
+//			dup = (LBCharacterGenericAction)CreateInstance(this.GetType());
+//			DuplicateProperties (dup);
+//
+//			return dup;
+//		}
+//
+//		protected override void DuplicateProperties(LBAction dup)
+//		{
+//			base.DuplicateProperties (dup);
+//
+//			((LBCharacterGenericAction)dup).PerformaceType = PerformaceType;
+//		}
 	}
 }
