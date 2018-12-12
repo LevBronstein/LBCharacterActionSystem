@@ -36,28 +36,37 @@ namespace LBAControlSystem
 		void StartWalk(Vector3 v)
 		{
 			LBCharacterMovementAction mov;
-			int i;
+			LBCharacterStartWalkAction step;
+		
+			mov = (LBCharacterMovementAction)(m.FindAction ("Walk"));
+			step = (LBCharacterStartWalkAction)(m.FindAction ("StartWalk"));
 
-			for (i = 0; i < m.AllActions.Length; i++)
+			if (mov != null)
 			{
-				if (m.AllActions [i].ActionName == "Walk")
+				mov.SetMovementSpeed (v.magnitude);
+
+				if (v != Vector3.zero)
 				{
-					mov = (LBCharacterMovementAction)m.AllActions [i];
+					mov.SetMovementDir (v);
 
-					if (mov != null)
+					if (step != null)
 					{
-						
-						mov.SetMovementSpeed(v.magnitude);
-
-						if (v != Vector3.zero)
-						{
-							mov.SetMovementDir (v);
-							mov.ActivateAction ();
-						}
+						step.ActivateAction ();
 					}
+					else
+						mov.ActivateAction ();
+				}
+			}
 
+//			for (i = 0; i < m.AllActions.Length; i++)
+//			{
+//				if (m.AllActions [i].ActionName == "Walk")
+//				{
+//					mov = (LBCharacterMovementAction)m.AllActions [i];
+//
 //					if (mov != null)
 //					{
+//						
 //						mov.SetMovementSpeed(v.magnitude);
 //
 //						if (v != Vector3.zero)
@@ -65,10 +74,9 @@ namespace LBAControlSystem
 //							mov.SetMovementDir (v);
 //							mov.ActivateAction ();
 //						}
-//					}
-						
-				}
-			}
+//					}						
+//				}
+//			}
 		}
 	
 		void StartJump()

@@ -150,7 +150,7 @@ namespace LBActionSystem
 //
 //			return false;
 //		}
-		protected bool bHasPropperTransferInSpeed()
+		public bool bHasPropperTransferInSpeed()
 		{
 			if (rigidbody.velocity != Vector3.zero)
 			{
@@ -166,7 +166,7 @@ namespace LBActionSystem
 			return false;
 		}
 
-		protected bool bHasPropperTransferOutSpeed()
+		public bool bHasPropperTransferOutSpeed()
 		{
 //			if (Vector3.Angle (rigidbody.transform.forward, RBSpeedDir) > 5.0f)
 //				return true;
@@ -176,7 +176,7 @@ namespace LBActionSystem
 			return false;
 		}
 
-		protected bool bHasControlImpulse()
+		public bool bHasControlImpulse()
 		{
 			if (TruncFloat (MovementSpeed) > 0)
 				return true;

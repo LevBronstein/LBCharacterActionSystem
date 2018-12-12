@@ -506,6 +506,32 @@ namespace LBActionSystem
 			return true; //no conditions in this class
 		}
 
+		protected LBAction FindInputAction(string name)
+		{
+			int i;
+
+			for (i = 0; i < input.Length; i++) 
+			{
+				if (input [i].name == name)
+					return input [i];
+			}
+
+			return null;
+		}
+
+		protected LBAction FindOutputAction(string name)
+		{
+			int i;
+
+			for (i = 0; i < output.Length; i++) 
+			{
+				if (output [i].name == name)
+					return output [i];
+			}
+
+			return null;
+		}
+
 		protected int FindInputIndex(LBAction action)
 		{
 			int i;

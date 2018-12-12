@@ -40,11 +40,11 @@ namespace LBActionSystem
 			}
 			else
 			{
-				if (ActionPerfomacneType == LBActionPerformanceTypes.PerformOnceModal)
-					return (AnimationTime >= 1);
+				if (ActionPerfomacneType == LBActionPerformanceTypes.PerformOnceModal && AnimationExtraLoops >= 1)
+					return true;
 			}
 
-			return true;
+			return false;
 		}
 
 		protected override bool CheckSelfDeactivationCondtions ()
@@ -57,6 +57,13 @@ namespace LBActionSystem
 
 			return false;
 		}
+
+		protected override void TickActive ()
+		{
+			Debug.Log ("Current animation: "+ AnimationName + " Current time: " + AnimationTime + " Started at: "+ startanimtime);
+			base.TickActive ();
+		}
+
 
 //		protected override void TrySelfDeactivate()
 //		{

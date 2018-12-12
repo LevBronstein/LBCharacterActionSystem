@@ -50,11 +50,15 @@ namespace LBActionSystem
 
 		protected override void TickActive ()
 		{
+			base.TickActive ();
+
 			TrySelfDeactivate();
 		}
 
 		protected override void TickInactive ()
 		{
+			base.TickInactive ();
+
 			TrySelfActivate();
 		}
 
