@@ -29,7 +29,7 @@ namespace LBAControlSystem
 
 			StartWalk(v);
 
-			if (Input.GetKey (KeyCode.Space))
+			if (Input.GetButton ("Jump"))
 				StartJump ();
 		}
 	

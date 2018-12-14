@@ -17,6 +17,13 @@ namespace LBActionSystem
 		PerformContinious
 	}
 
+//	public enum LBActionMovmenetOverride
+//	{
+//		DisableMovement, // No movement is performed during action (outer forces still work)	
+//		OverrideMovement, // Movement is performed during action, however @PerformOverridenMovement is used
+//		KeepMovement // The acton's class base @PerformMovement is used
+//	}
+
 	[CreateAssetMenu (fileName = "NewCharacterGenericAction", menuName = "LBActionSystem/CharacterGenericAction")]
 	public class LBCharacterGenericAction : LBCharacterMovementAction 
 	{
@@ -64,6 +71,7 @@ namespace LBActionSystem
 			base.TickActive ();
 		}
 
+		protected override void PerformMovement () { }
 
 //		protected override void TrySelfDeactivate()
 //		{
@@ -87,7 +95,7 @@ namespace LBActionSystem
 //			}
 //		}
 
-		public LBActionPerformanceTypes ActionPerfomacneType
+		public virtual LBActionPerformanceTypes ActionPerfomacneType
 		{
 			get 
 			{
@@ -103,7 +111,26 @@ namespace LBActionSystem
 			}
 		}
 
-		protected override void PerformMovement () {}
+//		public virtual LBActionMovmenetOverride MovmenetOverride
+//		{
+//			get 
+//			{
+//				return LBActionMovmenetOverride.DisableMovement;
+//			}
+//		}
+//
+//		protected override void PerformMovement () 
+//		{
+//			if (MovmenetOverride == LBActionMovmenetOverride.KeepMovement)
+//				base.PerformMovement ();
+//			else if (MovmenetOverride == LBActionMovmenetOverride.OverrideMovement)
+//				Per
+//		}
+
+//		protected virtual void PerformOverridenMovement()
+//		{
+//			
+//		}
 
 //		public override LBAction Duplicate ()
 //		{

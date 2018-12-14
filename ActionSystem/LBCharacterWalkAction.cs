@@ -117,7 +117,7 @@ namespace LBActionSystem
 
 		protected override bool CheckSelfDeactivationCondtions ()
 		{
-			return !bHasWalkableFloor () || bHasPropperTransferOutSpeed();
+			return (!bHasWalkableFloor () || bHasPropperTransferOutSpeed()) && !bHasControlImpulse();
 		}
 
 //		protected bool bHasWalkableFloor()
