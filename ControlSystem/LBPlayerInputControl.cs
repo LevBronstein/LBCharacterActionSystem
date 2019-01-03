@@ -29,6 +29,12 @@ namespace LBAControlSystem
 
 			StartWalk(v);
 
+			if (Input.GetKey(KeyCode.Q))
+				TurnInPlace (TransformBase.transform.right);
+
+			if (Input.GetKey (KeyCode.E))
+				TurnInPlace (-TransformBase.transform.right);
+
 			if (Input.GetButton ("Jump"))
 				StartJump ();
 		}
@@ -79,6 +85,19 @@ namespace LBAControlSystem
 //			}
 		}
 	
+		void TurnInPlace(Vector3 v)
+		{
+			LBCharacterTurnInPlaceAction t;
+
+			t = (LBCharacterTurnInPlaceAction)m.FindAction ("TurnInPlace");
+
+			if (t != null)
+			{
+				t.MovementDir = v;
+				t.ActivateAction ();
+			}
+		}
+
 		void StartJump()
 		{
 			LBCharacterJumpAction jmp;

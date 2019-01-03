@@ -24,6 +24,14 @@ namespace LBActionSystem
 			return true;
 		}
 
+//		protected override bool TransferAction (LBAction _other, LBActionTransitTypes _transit, LBActionTransitDirection _dir) // гемор?!
+//		{
+//			if (_dir == LBActionTransitDirection.Out)
+//				bHasImpulse = false;
+//			
+//			return base.TransferAction (_other, _transit, _dir);
+//		}
+
 		protected override void Activate (LBAction _prev, LBActionTransitTypes _transit)
 		{
 			LBCharacterMovementAction mov;
