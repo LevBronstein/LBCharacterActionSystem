@@ -93,7 +93,7 @@ namespace LBAControlSystem
 
 			if (t != null)
 			{
-				t.MovementDir = v;
+				t.SetMovementDir(v);
 				t.ActivateAction ();
 			}
 		}

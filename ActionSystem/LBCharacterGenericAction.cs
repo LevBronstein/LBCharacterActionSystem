@@ -49,6 +49,8 @@ namespace LBActionSystem
 			{
 				if (ActionPerfomacneType == LBActionPerformanceTypes.PerformOnceModal && AnimationExtraLoops >= 1)
 					return true;
+				else if (ActionPerfomacneType == LBActionPerformanceTypes.PerformOnce)
+					return true;
 			}
 
 			return false;
@@ -59,7 +61,7 @@ namespace LBActionSystem
 			if (AnimationName == string.Empty)
 				return true;
 
-			if ((AnimationTime >= 1) &&  (ActionPerfomacneType == LBActionPerformanceTypes.PerformOnce || ActionPerfomacneType == LBActionPerformanceTypes.PerformOnceModal))
+			if ((AnimationExtraLoops >= 1) &&  (ActionPerfomacneType == LBActionPerformanceTypes.PerformOnce || ActionPerfomacneType == LBActionPerformanceTypes.PerformOnceModal))
 				return  true;
 
 			return false;

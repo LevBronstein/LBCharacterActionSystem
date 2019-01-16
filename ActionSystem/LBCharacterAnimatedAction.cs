@@ -11,11 +11,28 @@ namespace LBActionSystem
 		Crossfade
 	}
 
+	[System.Serializable]
+	public struct LBAnimationInfo
+	{
+		public string AnimationName;
+		public int AnimationLayer;
+
+		public LBAnimationInfo (string animationn_name, int animation_layer)
+		{
+			AnimationName = animationn_name;
+			AnimationLayer = animation_layer;
+		}
+	}
+
 	[CreateAssetMenu (fileName = "NewCharacterAnimatedAction", menuName = "LBActionSystem/CharacterAnimatedAction")]
 	public class LBCharacterAnimatedAction : LBTransitiveAction
 	{
 		protected Animator animator = null;
+
+		protected string curanimname;
+		protected int curanimlayer;
 		protected float startanimtime;
+
 
 		public string AnimationName = string.Empty;
 		public int AnimationLayer = 0;
@@ -41,55 +58,37 @@ namespace LBActionSystem
 		{
 			base.Activate (_prev, _transit);
 
-			if (AnimationName != string.Empty)
+			ActivateAnimation ();
+		}
+
+		protected virtual void ActivateAnimation()
+		{
+			PlayAnimation (AnimationName, AnimationLayer, 0, AnimationBlendTime);
+		}
+
+		protected void PlayAnimation(string anim, int layer = 0, float offset = 0, float blend = 0.1f)
+		{
+			startanimtime = animator.GetCurrentAnimatorStateInfo (AnimationLayer).normalizedTime;
+
+			if (anim == string.Empty)
+				return;
+			
+			curanimname = AnimationName;
+			curanimlayer = AnimationLayer;
+
+			if (AnimationTrasnitionType == LBAnimationTransitionTypes.Play)
 			{
-
-				startanimtime = animator.GetCurrentAnimatorStateInfo (AnimationLayer).normalizedTime;
-//				if (((LBCharacterAnimatedAction)_prev) != null)
-//				{
-//					string prevanim = ((LBCharacterAnimatedAction)_prev).AnimationName;
-//					int prevanimlayer = ((LBCharacterAnimatedAction)_prev).AnimationLayer;
-//
-//					if (prevanim != string.Empty)
-//					{
-//						float prevanimtime = AnimationTime;
-//						RewindAnimation (); // start new animation at zero frame
-//						animator.Play (prevanim, prevanimlayer, prevanimtime); // return to the old animation at old time
-//					}
-//				}
-
-				if (AnimationTrasnitionType == LBAnimationTransitionTypes.Play)
-				{
-					animator.Play (AnimationName, AnimationLayer, 0); // we'll just play the anim form the start
-				}
-				else
-				{
-//					if (((LBCharacterAnimatedAction)_prev) != null)
-//					{
-//						string prevanim = ((LBCharacterAnimatedAction)_prev).AnimationName;
-//						int prevanimlayer = ((LBCharacterAnimatedAction)_prev).AnimationLayer;
-//	
-//						if (prevanim != string.Empty)
-//						{
-//							float prevanimtime = ((LBCharacterAnimatedAction)_prev).AnimationTime; // memorize old animation
-//							//RewindAnimation (); // start new animation at zero frame
-//							animator.Play (AnimationName, AnimationLayer, 0);
-//							animator.Play (prevanim, prevanimlayer, prevanimtime); // return to the old animation at old time
-//						}
-//					}
-
-					//animator.Play (AnimationName, AnimationLayer, 0);
-					animator.CrossFade (AnimationName, AnimationBlendTime);
-					//bstartcrossfade = true;
-					//Debug.Log ("Starting " + AnimationName + " which was already at " + AnimationTime.ToString() + "%");
-					//animator.Play (AnimationName, AnimationLayer, 0); // we'll just play the anim form the start
-				}
+				animator.Play (anim, layer, offset);
+			}
+			else
+			{
+				animator.CrossFade (anim, blend, layer);
 			}
 		}
 			
 		protected override void TickActive ()
 		{
-			if (animator.GetCurrentAnimatorStateInfo (AnimationLayer).normalizedTime < startanimtime)
+			if (animator.GetCurrentAnimatorStateInfo (curanimlayer).normalizedTime < startanimtime)
 				startanimtime = 0;
 			
 			base.TickActive ();
@@ -102,8 +101,8 @@ namespace LBActionSystem
 				if (animator != null) // We don't know, which animation we're playing currently
 				{
 					//animator.GetCurrentAnimatorStateInfo (AnimationLayer).ToString ();
-					if (animator.GetCurrentAnimatorStateInfo (AnimationLayer).normalizedTime > startanimtime)
-						return animator.GetCurrentAnimatorStateInfo (AnimationLayer).normalizedTime;
+					if (animator.GetCurrentAnimatorStateInfo (curanimlayer).normalizedTime > startanimtime)
+						return animator.GetCurrentAnimatorStateInfo (curanimlayer).normalizedTime;
 					else
 						return 0;
 				}
@@ -116,7 +115,7 @@ namespace LBActionSystem
 		{
 			get 
 			{
-				return (int) (animator.GetCurrentAnimatorStateInfo (AnimationLayer).normalizedTime - startanimtime);
+				return (int) (animator.GetCurrentAnimatorStateInfo (curanimlayer).normalizedTime - startanimtime);
 			}
 		}
 
@@ -130,7 +129,7 @@ namespace LBActionSystem
 
 		protected void RewindAnimation()
 		{
-			animator.Play (AnimationName, AnimationLayer, 0);
+			animator.Play (curanimname, curanimlayer, 0);
 		}
 
 

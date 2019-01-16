@@ -7,9 +7,13 @@ namespace LBActionSystem
 	[CreateAssetMenu (fileName = "NewCharacterTurnInPlaceAction", menuName = "LBActionSystem/CharacterTurnInPlaceAction")]
 	public class LBCharacterTurnInPlaceAction : LBCharacterGenericAction  
 	{
+		public string TrunLeftAnim90deg;
+		public string TrunRightAnim90deg;
+
 		public float BaseRotationSpeed = 5.0f;
 		public float ThresholdAngle = 10.0f; // A threshold, after which this action is activated (difference between desired rotation and current RB's rotation)
 
+		protected bool bCanSetNewDir = true;
 		protected Vector3 TargetDir;
 
 		protected override void Activate (LBAction _prev, LBActionTransitTypes _transit)
@@ -17,23 +21,61 @@ namespace LBActionSystem
 			base.Activate (_prev, _transit);
 
 			TargetDir = MovementDir; // We should remember this value, because MovementDir may change
+			bCanSetNewDir = false;
 		}
 			
+		protected override void Deactivate (LBAction _next, LBActionTransitTypes _transit)
+		{
+			base.Deactivate (_next, _transit);
+			bCanSetNewDir = true;
+		}
+
+//		protected override void Activate (LBAction _prev, LBActionTransitTypes _transit)
+//		{
+//			base.Activate (_prev, _transit);
+//
+//			ActivateAnimation ();
+//		}
+
+		protected override void ActivateAnimation()
+		{
+			if (DirDifference > 0)
+				PlayAnimation (TrunLeftAnim90deg, AnimationLayer, 0, AnimationBlendTime);
+			else
+				PlayAnimation (TrunRightAnim90deg, AnimationLayer, 0, AnimationBlendTime);
+		}
+
+//		protected override void ActivateAnimation()
+//		{
+//			
+//			if (AnimationTrasnitionType == LBAnimationTransitionTypes.Play)
+//			{
+//				PlayAnimation(AnimationName, AnimationLayer, 0);
+//			}
+//			else
+//			{
+//				CrossfadeAnimation(AnimationName, AnimationLayer, AnimationBlendTime);
+//			}
+//		}
+
 		protected override bool CheckTransferConditions(LBAction _other, LBActionTransitTypes _transit, LBActionTransitDirection _dir) 
 		{
 			if (_dir == LBActionTransitDirection.In)
 			{
-				return base.CheckTransferConditions (_other, _transit, LBActionTransitDirection.In) && bHasWalkableFloor () && bHasDirDifference ();
+				return bHasWalkableFloor () && bHasDirDifference ();
 			}
 			else
 			{
-				return base.CheckTransferConditions (_other, _transit, LBActionTransitDirection.Out) && !bHasDirDifference ();
+				return !bHasDirDifference ();
 			}
 		}
 
 		protected override bool CheckSelfDeactivationCondtions ()
 		{
-			return base.CheckSelfDeactivationCondtions () || !bHasWalkableFloor () || !bHasDirDifference ();
+			if (!bHasWalkableFloor () || !bHasDirDifference ())
+				return true;
+			else
+				return false;
 		}
 			
 		public override LBAnimationTransitionTypes AnimationTrasnitionType
@@ -58,6 +100,22 @@ namespace LBActionSystem
 //			}
 		}
 
+		public float DirDifference
+		{
+			get
+			{
+				return Vector3.SignedAngle  (new Vector3 (RBForwardDir.x, 0, RBForwardDir.z), new Vector3 (MovementDir.x, 0, MovementDir.z), Vector3.up);
+			}
+		}
+
+		protected bool bDirHasChanged()
+		{
+			if (TargetDir != MovementDir)
+				return true;
+			else
+				return false;
+		}
+
 		protected bool bHasDirDifference()
 		{
 			float ang = Vector3.SignedAngle (new Vector3 (RBForwardDir.x, 0, RBForwardDir.z), new Vector3 (MovementDir.x, 0, MovementDir.z), Vector3.up); // What about coord system?
@@ -66,6 +124,20 @@ namespace LBActionSystem
 				return true;
 
 			return false;
+		}
+
+		public override LBActionPerformanceTypes ActionPerfomacneType
+		{
+			get 
+			{
+				return LBActionPerformanceTypes.PerformOnce;
+			}
+		}
+
+		public override void SetMovementDir(Vector3 _dir)
+		{
+			if (bCanSetNewDir)
+				MovementDir = _dir;
 		}
 
 		public override LBAction Duplicate ()
@@ -83,6 +155,8 @@ namespace LBActionSystem
 			base.DuplicateProperties (dup);
 
 			((LBCharacterTurnInPlaceAction)dup).ThresholdAngle = ThresholdAngle;
+			((LBCharacterTurnInPlaceAction)dup).TrunLeftAnim90deg = TrunLeftAnim90deg;
+			((LBCharacterTurnInPlaceAction)dup).TrunRightAnim90deg = TrunRightAnim90deg;
 		}
 
 	}
