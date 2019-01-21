@@ -25,7 +25,7 @@ namespace LBActionSystem
 //	}
 
 	[CreateAssetMenu (fileName = "NewCharacterGenericAction", menuName = "LBActionSystem/CharacterGenericAction")]
-	public class LBCharacterGenericAction : LBCharacterMovementAction 
+	public class LBCharacterGenericAction : LBCharacterGroundMovementAction 
 	{
 		//public LBActionAnimationTypes AnimationType = LBActionAnimationTypes.Playback;
 

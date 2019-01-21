@@ -27,7 +27,9 @@ namespace LBAControlSystem
 			}
 				//v = TransformBase.transform.InverseTransformVector (v);
 
-			StartWalk(v);
+			//StartWalk(v);
+
+			WalkCharacter (v.magnitude, v.normalized);
 
 			if (Input.GetKey(KeyCode.Q))
 				TurnInPlace (TransformBase.transform.right);
@@ -85,6 +87,34 @@ namespace LBAControlSystem
 //			}
 		}
 	
+		void WalkCharacter(float spd, Vector3 dir)
+		{
+			int i;
+			LBCharacterMovementAction mov;
+			LBCharacterStartWalkAction start;
+
+			start = (LBCharacterStartWalkAction)(m.FindAction ("StartWalk"));
+
+			for (i = 0; i < m.AllActions.Length; i++)
+			{
+				if (m.AllActions [i].GetType() != (typeof(LBCharacterMovementAction)) && !(m.AllActions [i].GetType().IsSubclassOf(typeof(LBCharacterMovementAction))))
+					continue;
+				
+				mov = (LBCharacterMovementAction) (m.AllActions [i]);
+
+				if (mov != null)
+				{
+					mov.SetMovementSpeed (spd);
+
+					if (dir != Vector3.zero)
+						mov.SetMovementDir (dir);
+				}
+			}
+
+			if (start != null && spd != 0)
+				start.ActivateAction ();
+		}
+
 		void TurnInPlace(Vector3 v)
 		{
 			LBCharacterTurnInPlaceAction t;

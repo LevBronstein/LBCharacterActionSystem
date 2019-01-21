@@ -10,6 +10,9 @@ namespace LBActionSystem
 		public string TrunLeftAnim90deg;
 		public string TrunRightAnim90deg;
 
+		public bool bUseRestraintDirection;
+		public LBDirectionRestraint DirectionRestraint;
+
 		public float BaseRotationSpeed = 5.0f;
 		public float ThresholdAngle = 10.0f; // A threshold, after which this action is activated (difference between desired rotation and current RB's rotation)
 
@@ -39,7 +42,7 @@ namespace LBActionSystem
 
 		protected override void ActivateAnimation()
 		{
-			if (DirDifference > 0)
+			if (DirectionDifference > 0)
 				PlayAnimation (TrunLeftAnim90deg, AnimationLayer, 0, AnimationBlendTime);
 			else
 				PlayAnimation (TrunRightAnim90deg, AnimationLayer, 0, AnimationBlendTime);
@@ -62,22 +65,52 @@ namespace LBActionSystem
 		{
 			if (_dir == LBActionTransitDirection.In)
 			{
-				return bHasWalkableFloor () && bHasDirDifference ();
+				if (bCanTurnInPlace ())
+					return true;
+				else
+					return false;
 			}
 			else
 			{
-				return !bHasDirDifference ();
+				if (!bCanTurnInPlace ())
+					return true;
+				else
+					return false;
 			}
 		}
 
 		protected override bool CheckSelfDeactivationCondtions ()
 		{
-			if (!bHasWalkableFloor () || !bHasDirDifference ())
+			if (!bCanTurnInPlace ())
 				return true;
 			else
 				return false;
 		}
+
+		protected bool bCanTurnInPlace()
+		{
+			bool b;
+
+			b = true;
+
+			b = b && bHasWalkableFloor ();
+
+			b = b && bHasDirDifference ();
+
+			if (bUseRestraintDirection)
+				b = b && bHasPropperTransferDirection ();
+
+			return b;
+		}
 			
+		public bool bHasPropperTransferDirection()
+		{
+			if (CheckDirectionRestraint (DirectionDifference, DirectionRestraint))
+				return true;
+
+			return false;
+		}
+
 		public override LBAnimationTransitionTypes AnimationTrasnitionType
 		{
 			get
@@ -98,14 +131,6 @@ namespace LBActionSystem
 //				currot = LerpFloat (0, TruncFloat(ang,1), BaseRotationSpeed, Time.fixedTime);
 //				rigidbody.rotation = Quaternion.LookRotation (Quaternion.AngleAxis (TruncFloat(currot), Vector3.up) * RBForwardDir);
 //			}
-		}
-
-		public float DirDifference
-		{
-			get
-			{
-				return Vector3.SignedAngle  (new Vector3 (RBForwardDir.x, 0, RBForwardDir.z), new Vector3 (MovementDir.x, 0, MovementDir.z), Vector3.up);
-			}
 		}
 
 		protected bool bDirHasChanged()

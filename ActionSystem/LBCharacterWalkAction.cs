@@ -4,21 +4,13 @@ using UnityEngine;
 
 namespace LBActionSystem
 {
-	[System.Serializable]
-	public struct LBSpeedRestraint
-	{
-		public float MinSpeed;
-		public bool bStrictMin;
-		public float MaxSpeed;
-		public bool bStricMax;
-		public bool OuterInterval;
-	}
+	
 
 	/// <summary>
 	/// Handles walk action of an arbitary character, which is performed in a forward direction on a flat surface.
 	/// </summary>
 	[CreateAssetMenu (fileName = "NewCharacterWalkAction", menuName = "LBActionSystem/CharacterWalkAction")]
-	public class LBCharacterWalkAction : LBCharacterMovementAction 
+	public class LBCharacterWalkAction : LBCharacterGroundMovementAction 
 	{
 		/// <summary>
 		/// A value of the maximum availiable movement speed for the character in this state in Unity units. Modified by a coefficient.
@@ -37,8 +29,15 @@ namespace LBActionSystem
 		public string CharVelocityParamName = "CharVelocityNorm";
 		public string CharDeltaRotParamName = "CharDeltaRotNorm";
 
+		public bool bUseRestraintSpeedIn;
 		public LBSpeedRestraint SpeedRestraintIn;
+		public bool bUseRestraintSpeedOut;
 		public LBSpeedRestraint SpeedRestraintOut;
+
+		public bool bUseRestraintDirectionIn;
+		public LBDirectionRestraint DirectionRestraintIn;
+		public bool bUseRestraintDirectionOut;
+		public LBDirectionRestraint DirectionRestraintOut;
 
 		protected Vector3 idealvelocity;
 
@@ -99,25 +98,61 @@ namespace LBActionSystem
 		{
 			if (_dir == LBActionTransitDirection.In)
 			{
-				return bHasControlImpulse() && bHasWalkableFloor () && bHasPropperTransferInSpeed();
+				if (bCanWalk ())
+					return true;
+				else
+					return false;
 			}
 			else
 			{
 				return true;
 			}
 		}
-
-//		protected override void TrySelfDeactivate()
-//		{
-//			if (!bHasWalkableFloor () || bHasPropperTransferOutSpeed())
-//			{
-//				DeactivateAction ();
-//			}
-//		}
-
+			
 		protected override bool CheckSelfDeactivationCondtions ()
 		{
-			return (!bHasWalkableFloor () || bHasPropperTransferOutSpeed()) && !bHasControlImpulse();
+			if (bCanStopWalk ())
+				return true;
+			else
+				return false;
+		}
+
+		protected bool bCanWalk()
+		{
+			bool b;
+
+			b = true;
+
+			b = b && bHasControlImpulse ();
+
+			b = b && bHasWalkableFloor ();
+
+			if (bUseRestraintSpeedIn)
+				b = b && bHasPropperTransferInSpeed ();
+
+			if (bUseRestraintDirectionIn)
+				b = b && bHasPropperTransferInDirection ();
+
+			return b;
+		}
+
+		protected bool bCanStopWalk()
+		{
+			bool b;
+
+			b = false;
+
+			//b = b || !bHasControlImpulse ();
+
+			b = b || !bHasWalkableFloor ();
+
+			if (bUseRestraintSpeedOut)
+				b = b || bHasPropperTransferOutSpeed ();
+
+			if (bUseRestraintDirectionOut)
+				b = b || bHasPropperTransferOutDirection ();
+
+			return b;
 		}
 
 //		protected bool bHasWalkableFloor()
@@ -158,7 +193,7 @@ namespace LBActionSystem
 					return true;
 			}
 			else
-			{
+			{				
 				if (CheckSpeedRestraint (TruncFloat (RBSpeed), SpeedRestraintIn))
 					return true;
 			}
@@ -175,6 +210,23 @@ namespace LBActionSystem
 
 			return false;
 		}
+
+		public bool bHasPropperTransferInDirection()
+		{
+			if (CheckDirectionRestraint (DirectionDifference, DirectionRestraintIn))
+				return true;
+
+			return false;
+		}
+
+		public bool bHasPropperTransferOutDirection()
+		{
+			if (CheckDirectionRestraint (DirectionDifference, DirectionRestraintOut))
+				return true;
+
+			return false;
+		}
+
 
 		public bool bHasControlImpulse()
 		{
@@ -195,32 +247,6 @@ namespace LBActionSystem
 //			return false;
 //		}
 
-		protected bool CheckSpeedRestraint(float spd, LBSpeedRestraint rest)
-		{
-			float min, max;
-
-			min = Mathf.Min (rest.MinSpeed, rest.MaxSpeed);
-			max = Mathf.Max (rest.MinSpeed, rest.MaxSpeed);
-
-			if (!rest.OuterInterval)
-			{
-				if (spd >= min && !rest.bStrictMin || spd > min && rest.bStrictMin)
-				{
-					if (spd <= max && !rest.bStrictMin || spd < max && rest.bStricMax)
-						return true;
-				}
-			}
-			else
-			{
-				if (spd <= min && !rest.bStrictMin || spd < min && rest.bStrictMin)
-					return true;
-
-				if (spd >= max && !rest.bStrictMin || spd > max && rest.bStricMax)
-					return true;
-			}
-
-			return false;
-		}
 
 		public virtual void SetBaseMovementSpeed(float _basespd)
 		{
@@ -241,8 +267,16 @@ namespace LBActionSystem
 		{
 			base.DuplicateProperties (dup);
 
+			((LBCharacterWalkAction)dup).bUseRestraintSpeedIn = bUseRestraintSpeedIn;
 			((LBCharacterWalkAction)dup).SpeedRestraintIn = SpeedRestraintIn;
+			((LBCharacterWalkAction)dup).bUseRestraintSpeedOut = bUseRestraintSpeedOut;
 			((LBCharacterWalkAction)dup).SpeedRestraintOut = SpeedRestraintOut;
+
+			((LBCharacterWalkAction)dup).bUseRestraintDirectionIn = bUseRestraintDirectionIn;
+			((LBCharacterWalkAction)dup).DirectionRestraintIn = DirectionRestraintIn;
+			((LBCharacterWalkAction)dup).bUseRestraintDirectionOut = bUseRestraintDirectionOut;
+			((LBCharacterWalkAction)dup).DirectionRestraintOut = DirectionRestraintOut;
+
 			((LBCharacterWalkAction)dup).BaseMovementSpeed = BaseMovementSpeed;
 			((LBCharacterWalkAction)dup).BaseRotationSpeed = BaseRotationSpeed;
 			((LBCharacterWalkAction)dup).MovementAcceleration = MovementAcceleration;
