@@ -11,6 +11,8 @@ namespace LBActionSystem
 
 		protected bool bhasimpulse;
 
+		protected Vector3 origvel;
+
 		public override bool ActivateAction () // гемор?
 		{
 			bHasImpulse = true;
@@ -34,16 +36,31 @@ namespace LBActionSystem
 
 		protected override void Activate (LBAction _prev, LBActionTransitTypes _transit)
 		{
-			LBCharacterMovementAction mov;
+			//LBCharacterMovementAction mov;
 			base.Activate (_prev, _transit);
 
-			mov = (LBCharacterMovementAction)_prev;
+//			mov = (LBCharacterMovementAction)_prev;
+//
+//			if (mov != null)
+//			{
+//				SetMovementSpeed (RBSpeed);
+//				SetMovementDir (RBSpeedDir);
+//			}
 
-			if (mov != null)
+			if (bPreserveSpeed)
 			{
-				SetMovementSpeed (RBSpeed);
-				SetMovementDir (RBSpeedDir);
+				origvel = RBSpeedVector;
 			}
+		}
+
+		public override bool DeactivateAction ()
+		{
+			if (bPreserveSpeed)
+			{
+				RBSpeedVector = origvel;
+			}
+
+			return base.DeactivateAction ();
 		}
 
 		protected override bool CheckTransferConditions(LBAction _other, LBActionTransitTypes _transit, LBActionTransitDirection _dir) 
@@ -70,9 +87,9 @@ namespace LBActionSystem
 		{
 			if (bPreserveSpeed)
 			{
-				rigidbody.velocity = MovementDir.normalized * MovementSpeed;
-				if (MovementDir != Vector3.zero)
-					rigidbody.rotation = Quaternion.LookRotation (MovementDir);
+				//rigidbody.velocity = origspeeddir.normalized * origspeed;
+//				if (MovementDir != Vector3.zero)
+//					rigidbody.rotation = Quaternion.LookRotation (MovementDir);
 			}
 		}
 
@@ -80,7 +97,7 @@ namespace LBActionSystem
 		{
 			set 
 			{
-				bhasimpulse = true;
+				bhasimpulse = value;
 			}
 			get 
 			{

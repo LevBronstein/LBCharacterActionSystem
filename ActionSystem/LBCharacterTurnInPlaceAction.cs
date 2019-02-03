@@ -179,6 +179,7 @@ namespace LBActionSystem
 		{
 			base.DuplicateProperties (dup);
 
+			((LBCharacterTurnInPlaceAction)dup).BaseRotationSpeed = BaseRotationSpeed;
 			((LBCharacterTurnInPlaceAction)dup).ThresholdAngle = ThresholdAngle;
 			((LBCharacterTurnInPlaceAction)dup).TrunLeftAnim90deg = TrunLeftAnim90deg;
 			((LBCharacterTurnInPlaceAction)dup).TrunRightAnim90deg = TrunRightAnim90deg;

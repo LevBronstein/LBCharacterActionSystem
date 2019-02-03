@@ -38,7 +38,10 @@ namespace LBAControlSystem
 				TurnInPlace (-TransformBase.transform.right);
 
 			if (Input.GetButton ("Jump"))
-				StartJump ();
+			{
+				JumpInPlace ();
+				JumpInMotion ();
+			}
 		}
 	
 		void StartWalk(Vector3 v)
@@ -128,11 +131,21 @@ namespace LBAControlSystem
 			}
 		}
 
-		void StartJump()
+		void JumpInPlace()
 		{
 			LBCharacterJumpAction jmp;
 
-			jmp = (LBCharacterJumpAction)m.FindAction ("Jump");
+			jmp = (LBCharacterJumpAction)m.FindAction ("JumpInPlace");
+
+			if (jmp != null)
+				jmp.ActivateAction ();
+		}
+
+		void JumpInMotion()
+		{
+			LBCharacterJumpAction jmp;
+
+			jmp = (LBCharacterJumpAction)m.FindAction ("JumpInMotion");
 
 			if (jmp != null)
 				jmp.ActivateAction ();

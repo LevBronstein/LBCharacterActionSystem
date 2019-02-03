@@ -30,10 +30,24 @@ namespace LBActionSystem
 		ByCondition
 	}
 
+	[System.Serializable]
 	public struct LBTransferInfo
 	{
 		public string ActionName;
-		public LBActionTransitTypes TransitType;
+		public int Priority;
+		//public LBActionTransitTypes TransitType;
+	}
+
+	struct LBPriritizedAction
+	{
+		public LBAction Action;
+		public int Priority;
+
+		public LBPriritizedAction (LBAction action, int priority)
+		{
+			Action = action;
+			Priority = priority;
+		}
 	}
 
 	public class LBActionTransitionEventArgs : LBActionEventArgs
@@ -78,8 +92,11 @@ namespace LBActionSystem
 		protected LBAction[] input = new LBAction[0];
 		protected LBAction[] output = new LBAction[0]; // что делать, если output не сможет включиться?
 
-		public string[] Input;
-		public string[] Output;
+//		public string[] Input;
+//		public string[] Output;
+
+		public LBTransferInfo[] Input;
+		public LBTransferInfo[] Output;
 
 		public LBActionTransitTypes TransferType = LBActionTransitTypes.Switch; // only works for @TransfersFrom
 
@@ -147,18 +164,40 @@ namespace LBActionSystem
 			int i;
 
 			LBAction[] res = new LBAction[0];
+			List<LBPriritizedAction> list = new List<LBPriritizedAction>();
 
 			for (i = 0; i < input.Length; i++) 
 			{
 				if (this.CanTransferAction (input [i], TransferType, LBActionTransitDirection.In))
 				{
-					Array.Resize (ref res, res.Length + 1);
-					res [res.Length - 1] = input [i];
-					return res;
+					list.Add (new LBPriritizedAction (input [i], GetInputPriority (input [i].ActionName)));
+//					Array.Resize (ref res, res.Length + 1);
+//					res [res.Length - 1] = input [i];
+//					return res;
 				}
+			}
+				
+			if (list.Count > 0)
+			{
+				LBPriritizedAction max;
+
+				Array.Resize (ref res, 1);
+
+				max = list [0];
+
+				for (i = 0; i < list.Count; i++)
+				{
+					if (list [i].Priority > max.Priority)
+					{
+						max = list [i];
+					}
+				}
+
+				res [0] = max.Action;
 			}
 
 			return res;
+
 		}
 
 		/// <summary>
@@ -202,15 +241,34 @@ namespace LBActionSystem
 			int i;
 
 			LBAction[] res = new LBAction[0];
+			///SortedList <int, LBAction> list = new SortedList <int, LBAction> ();
+			List<LBPriritizedAction> list = new List<LBPriritizedAction>();
 
 			for (i = 0; i < output.Length; i++) 
 			{
 				if (this.CanTransferAction (output [i], TransferType, LBActionTransitDirection.Out))
 				{
-					Array.Resize (ref res, res.Length + 1);
-					res [res.Length - 1] = output [i];
-					return res;
+					list.Add (new LBPriritizedAction (output [i], GetOutputPriority (output [i].ActionName)));
 				}
+			}
+
+			if (list.Count > 0)
+			{
+				LBPriritizedAction max;
+
+				Array.Resize (ref res, 1);
+
+				max = list [0];
+
+				for (i = 0; i < list.Count; i++)
+				{
+					if (list [i].Priority > max.Priority)
+					{
+						max = list [i];
+					}
+				}
+
+				res [0] = max.Action;
 			}
 
 			return res;
@@ -584,6 +642,32 @@ namespace LBActionSystem
 			return false;
 		}
 			
+		int GetInputPriority(string action)
+		{
+			int i;
+
+			for (i = 0; i < Input.Length; i++) 
+			{
+				if (Input [i].ActionName == action)
+					return Input [i].Priority;
+			}
+
+			return -1;
+		}
+
+		int GetOutputPriority(string action)
+		{
+			int i;
+
+			for (i = 0; i < Output.Length; i++) 
+			{
+				if (Output [i].ActionName == action)
+					return Output [i].Priority;
+			}
+
+			return -1;
+		}
+
 		LBAction[] FindInputTransfers()
 		{
 			int i, j, k;
@@ -602,7 +686,7 @@ namespace LBActionSystem
 			{
 				for (j = 0; j < Input.Length; j++)
 				{
-					if (actions [i].ActionName == Input [j]) 
+					if (actions [i].ActionName == Input [j].ActionName) 
 					{
 						k++;
 						Array.Resize (ref res, k);
@@ -632,7 +716,7 @@ namespace LBActionSystem
 			{
 				for (j = 0; j < Output.Length; j++)
 				{
-					if (actions [i].ActionName == Output [j]) 
+					if (actions [i].ActionName == Output [j].ActionName) 
 					{
 						k++;
 						Array.Resize (ref res, k);

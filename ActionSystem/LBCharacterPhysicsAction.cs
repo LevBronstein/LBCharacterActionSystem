@@ -156,6 +156,11 @@ namespace LBActionSystem
 			{
 				return rigidbody.velocity.magnitude;	
 			}
+
+			protected set
+			{
+				rigidbody.velocity = rigidbody.velocity.normalized * value;
+			}
 		}
 
 		public Vector3 RBSpeedDir
@@ -164,6 +169,11 @@ namespace LBActionSystem
 			{
 				return rigidbody.velocity.normalized;	
 			}
+
+			protected set
+			{
+				rigidbody.velocity = value.normalized * rigidbody.velocity.magnitude;
+			}
 		}
 
 		public Vector3 RBSpeedVector
@@ -171,6 +181,11 @@ namespace LBActionSystem
 			get 
 			{
 				return rigidbody.velocity;	
+			}
+
+			protected set
+			{
+				rigidbody.velocity = value;
 			}
 		}
 

@@ -12,9 +12,13 @@ namespace LBActionSystem
 		public float JumpHeight; // How high will can we jump
 		public float JumpSpeed; // How fast will we jump
 
+		public float FlatMotionModifier = 1;
+
 		protected float jumpheight;
 
 		protected bool bUseGravity;
+
+		protected Vector3 lastrbvel;
 
 		protected override void Activate (LBAction _prev, LBActionTransitTypes _transit)
 		{
@@ -25,7 +29,7 @@ namespace LBActionSystem
 //			v.y = JumpInstantUpSpeed;
 //
 //			rigidbody.velocity = v;
-
+			lastrbvel = RBSpeedVector;
 			jumpheight = 0;
 			bUseGravity = rigidbody.useGravity;
 			rigidbody.useGravity = false;
@@ -36,6 +40,7 @@ namespace LBActionSystem
 			base.Deactivate ();
 
 			rigidbody.useGravity = bUseGravity;
+			RBSpeedVector = new Vector3 (lastrbvel.x, 0, lastrbvel.z);
 		}
 
 		protected override void PerformMovement ()
@@ -43,12 +48,11 @@ namespace LBActionSystem
 			if (!bHasFinishedJump ())
 			{
 				jumpheight += Mathf.Abs (JumpSpeed) * Time.fixedDeltaTime;
-				Vector3 v = RBSpeedVector;
-				v.y = JumpSpeed;
-				rigidbody.velocity = v;
+				rigidbody.velocity = new Vector3 (lastrbvel.x * FlatMotionModifier, JumpSpeed, lastrbvel.z * FlatMotionModifier);
 			}
-			else
-				rigidbody.useGravity = true;
+//			else
+//				//rigidbody.useGravity = true;
+//				rigidbody.velocity = new Vector3 (rigidbody.velocity.x, 0, rigidbody.velocity.z);
 		}
 
 		protected override bool CheckTransferConditions(LBAction _other, LBActionTransitTypes _transit, LBActionTransitDirection _dir) // нужно добавить проверку на наличие связи?
@@ -108,6 +112,7 @@ namespace LBActionSystem
 
 			((LBCharacterInstantMoveUp)dup).JumpHeight = JumpHeight;
 			((LBCharacterInstantMoveUp)dup).JumpSpeed = JumpSpeed;
+			((LBCharacterInstantMoveUp)dup).FlatMotionModifier = FlatMotionModifier;
 		}
 	
 	}

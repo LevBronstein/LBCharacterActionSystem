@@ -50,8 +50,8 @@ namespace LBActionSystem
 
 			destspd = Mathf.Clamp (BaseMovementSpeed * Mathf.Clamp01 (MovementSpeed), SpeedRestraintOut.MinSpeed, SpeedRestraintOut.MaxSpeed);
 			curspd = LerpFloat (idealvelocity.magnitude, destspd, MovementAcceleration, Time.fixedDeltaTime);
-			idealvelocity = RBForwardDir.normalized * curspd;
-			rigidbody.velocity = idealvelocity;
+			idealvelocity = (new Vector3(RBForwardDir.x, 0, RBForwardDir.z)).normalized * curspd;
+			rigidbody.velocity = idealvelocity + new Vector3(0, RBSpeedVector.y, 0);
 
 			if (animator != null)
 			{
@@ -187,18 +187,21 @@ namespace LBActionSystem
 //		}
 		public bool bHasPropperTransferInSpeed()
 		{
-			if (rigidbody.velocity != Vector3.zero)
-			{
-				if (Vector3.Angle (rigidbody.transform.forward, rigidbody.velocity) < 5.0f && CheckSpeedRestraint (TruncFloat (rigidbody.velocity.magnitude), SpeedRestraintIn))
-					return true;
-			}
+//			if (rigidbody.velocity != Vector3.zero)
+//			{
+//				if (Vector3.Angle (rigidbody.transform.forward, rigidbody.velocity) < 5.0f && CheckSpeedRestraint (TruncFloat (rigidbody.velocity.magnitude), SpeedRestraintIn))
+//					return true;
+//			}
+//			else
+//			{				
+//				if (CheckSpeedRestraint (TruncFloat (RBSpeed), SpeedRestraintIn))
+//					return true;
+//			}
+
+			if (CheckSpeedRestraint (TruncFloat (RBSpeed), SpeedRestraintIn))
+				return true;
 			else
-			{				
-				if (CheckSpeedRestraint (TruncFloat (RBSpeed), SpeedRestraintIn))
-					return true;
-			}
-			
-			return false;
+				return false;
 		}
 
 		public bool bHasPropperTransferOutSpeed()

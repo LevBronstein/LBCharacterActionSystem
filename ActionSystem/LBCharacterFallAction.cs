@@ -7,9 +7,27 @@ namespace LBActionSystem
 	[CreateAssetMenu (fileName = "NewCharacterFallAction", menuName = "LBActionSystem/CharacterFallAction")]
 	public class LBCharacterFallAction : LBCharacterMovementAction 
 	{
+		public bool bPreserveSpeed;
+
+		protected Vector3 origvel;
+
+		protected override void Activate (LBAction _prev, LBActionTransitTypes _transit)
+		{
+			base.Activate (_prev, _transit);
+
+			if (bPreserveSpeed)
+			{
+				origvel = RBSpeedVector;
+			}
+		}
+
 
 		protected override void PerformMovement ()
 		{
+			if (bPreserveSpeed)
+			{
+				RBSpeedVector = origvel + Physics.gravity; // what if we have some other physic forces
+			}
 		}
 
 		protected override bool CheckTransferConditions(LBAction _other, LBActionTransitTypes _transit, LBActionTransitDirection _dir) // нужно добавить проверку на наличие связи?
@@ -39,6 +57,23 @@ namespace LBActionSystem
 			{
 				DeactivateAction ();
 			}
+		}
+
+		public override LBAction Duplicate ()
+		{
+			LBCharacterFallAction dup;
+
+			dup = (LBCharacterFallAction)CreateInstance(this.GetType());
+			DuplicateProperties (dup);
+
+			return dup;
+		}
+			
+		protected override void DuplicateProperties(LBAction dup)
+		{
+			base.DuplicateProperties (dup);
+
+			((LBCharacterFallAction)dup).bPreserveSpeed = bPreserveSpeed;
 		}
 
 	}
