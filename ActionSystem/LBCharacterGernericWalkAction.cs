@@ -4,14 +4,13 @@ using UnityEngine;
 
 namespace LBActionSystem
 {
-	
-
-	/// <summary>
-	/// Handles walk action of an arbitary character, which is performed in a forward direction on a flat surface.
-	/// </summary>
-	[CreateAssetMenu (fileName = "NewCharacterWalkAction", menuName = "LBActionSystem/CharacterWalkAction")]
-	public class LBCharacterWalkAction : LBCharacterGroundMovementAction 
+	[CreateAssetMenu (fileName = "NewCharacterGernericWalkAction", menuName = "LBActionSystem/CharacterGernericWalkAction")]
+	public class LBCharacterGernericWalkAction : LBCharacterGenericAction
 	{
+
+		public LBActionPerformanceTypes PerformanceType;
+		public LBAnimationTransitionTypes AnimTransitionType;
+
 		/// <summary>
 		/// A value of the maximum availiable movement speed for the character in this state in Unity units. Modified by a coefficient.
 		/// </summary>
@@ -25,6 +24,13 @@ namespace LBActionSystem
 		/// </summary>
 		public float MovementAcceleration = 0.15f;
 
+		public bool bNeedsControlImpulse;
+
+		public bool bPreserveSpeed;
+		public bool bAutoDetectInputSpeed;
+		public bool bBlockExternalDir;
+		public bool bBlockExternalSpeed;
+
 		public bool bUseRestraintSpeedIn;
 		public LBSpeedRestraint SpeedRestraintIn;
 		public bool bUseRestraintSpeedOut;
@@ -37,53 +43,53 @@ namespace LBActionSystem
 
 		protected Vector3 idealvelocity;
 
-//		public float MinSpeedLimit = 0.0f; // Min amount of forward speed
-//		public float MaxSpeedLimit = 3.0f;
+		protected override void Activate (LBAction _prev, LBActionTransitTypes _transit)
+		{
+			base.Activate (_prev, _transit);
 
-		protected virtual void Move() // Time.deltaTime ???
+			if (bPreserveSpeed)
+			{
+//				MovementSpeed = RBFlatSpeed;
+				MovementDir = RBFlatSpeedDir;
+				idealvelocity = new Vector3 (RBSpeedVector.x, 0, RBSpeedVector.z);
+
+				if (bAutoDetectInputSpeed)
+					base.SetMovementSpeed (idealvelocity.magnitude / BaseMovementSpeed);
+			}
+		}
+
+		protected virtual void Move() 
 		{
 			float curspd, destspd;
 
-			destspd = Mathf.Clamp (BaseMovementSpeed * Mathf.Clamp01 (MovementSpeed), SpeedRestraintOut.MinSpeed, SpeedRestraintOut.MaxSpeed);
+			if (bUseRestraintSpeedOut)
+				destspd = Mathf.Clamp (BaseMovementSpeed * Mathf.Clamp01 (MovementSpeed), SpeedRestraintOut.MinSpeed, SpeedRestraintOut.MaxSpeed);
+			else
+				destspd = BaseMovementSpeed * Mathf.Clamp01 (MovementSpeed);
+			
 			curspd = LerpFloat (idealvelocity.magnitude, destspd, MovementAcceleration, Time.fixedDeltaTime);
-			idealvelocity = (new Vector3(RBForwardDir.x, 0, RBForwardDir.z)).normalized * curspd;
-			rigidbody.velocity = idealvelocity + new Vector3(0, RBSpeedVector.y, 0);
+			///curspd = LerpFloat (RBFlatSpeed, destspd, MovementAcceleration, Time.fixedDeltaTime);
 
-			if (animator != null)
-			{
-				//animator.SetFloat (CharVelocityParamName, curspd / BaseMovementSpeed);
-				SetVelocityParam(curspd / BaseMovementSpeed);
-			}
+			idealvelocity = (new Vector3(RBForwardDir.x, 0, RBForwardDir.z)).normalized * curspd;
+			RBSpeedVector = idealvelocity + new Vector3(0, RBSpeedVector.y, 0);
+			//RBSpeedVector = RBForwardDir * curspd + Physics.gravity;
+
+			SetVelocityParam(curspd / BaseMovementSpeed);
 		}
 
 		protected virtual void Rotate()
 		{
 			float currot, destrot;
 
-			//Debug.Log (MovementDir);
 			destrot = Vector3.SignedAngle (RBForwardDir, new Vector3 (MovementDir.x, 0, MovementDir.z), Vector3.up);
-			//destrot = SingedAngle(RBForwardDir, MovementDir, Vector3.up);
 			currot = LerpFloat (0, TruncFloat(destrot,1), BaseRotationSpeed, Time.fixedTime);
 			rigidbody.rotation = Quaternion.LookRotation (Quaternion.AngleAxis (TruncFloat(currot), Vector3.up) * RBForwardDir);
-			//Debug.Log (destrot);
 			if (animator != null)
 			{
 				float lastrot, newrot;
-
-				//lastrot = animator.GetFloat (CharDeltaRotParamName) * 180;
 				lastrot = GetDeltaRotParam(LBAxisTypes.YAxis) * 180;
-
 				newrot = LerpFloat (lastrot, destrot, BaseRotationSpeed * 10, Time.fixedTime) / 180;
-
-				//animator.SetFloat (CharDeltaRotParamName, newrot);
 				SetDeltaRotParam(newrot, LBAxisTypes.YAxis);
-
-//				if (Mathf.Sign (lastrot) == Mathf.Sign (newrot))
-//					animator.SetFloat (CharDeltaRotParamName, newrot);
-//				else
-//				{
-//					
-//				}
 			}
 		}
 
@@ -106,13 +112,13 @@ namespace LBActionSystem
 			}
 			else
 			{
-				return true;
+				return base.CheckTransferConditions(_other, _transit, _dir) || bCanStopWalk();
 			}
 		}
-			
+
 		protected override bool CheckSelfDeactivationCondtions ()
 		{
-			if (bCanStopWalk ())
+			if (base.CheckSelfDeactivationCondtions() || bCanStopWalk ())
 				return true;
 			else
 				return false;
@@ -126,7 +132,8 @@ namespace LBActionSystem
 
 			b = b && bHasWalkableFloor ();
 
-			b = b && bHasControlImpulse ();
+			if (bNeedsControlImpulse)
+				b = b && bHasControlImpulse ();
 
 			if (bUseRestraintSpeedIn)
 				b = b && bHasPropperTransferInSpeed ();
@@ -143,8 +150,6 @@ namespace LBActionSystem
 
 			b = false;
 
-			//b = b || !bHasControlImpulse ();
-
 			b = b || !bHasWalkableFloor ();
 
 			if (bUseRestraintSpeedOut)
@@ -155,51 +160,10 @@ namespace LBActionSystem
 
 			return b;
 		}
-
-//		protected bool bHasWalkableFloor()
-//		{
-//			Collider c;
-//			Ray r;
-//			RaycastHit hit;
-//
-//			c = parent.GetComponent<Collider>();
-//
-//			if (c == null)
-//				return false;
-//
-//			r = new Ray (c.bounds.center, Vector3.down);
-//
-//			Debug.DrawRay (r.origin, r.direction, Color.green);
-//
-////			if (Physics.Raycast (r.origin, r.direction, out hit, c.bounds.extents.y+0.05f)) 
-////			{
-////				//Debug.Log (hit.transform.gameObject.name);
-////				if (hit.transform.gameObject.name != parent.name)
-////					return true;
-////			}
-//
-//			if (Physics.SphereCast (r, c.bounds.extents.x*2, out hit, c.bounds.extents.y+0.05f))
-//			{
-//				if (hit.transform.gameObject.name != parent.name)
-//					return true;
-//			}
-//
-//			return false;
-//		}
+			
 		public bool bHasPropperTransferInSpeed()
 		{
-//			if (rigidbody.velocity != Vector3.zero)
-//			{
-//				if (Vector3.Angle (rigidbody.transform.forward, rigidbody.velocity) < 5.0f && CheckSpeedRestraint (TruncFloat (rigidbody.velocity.magnitude), SpeedRestraintIn))
-//					return true;
-//			}
-//			else
-//			{				
-//				if (CheckSpeedRestraint (TruncFloat (RBSpeed), SpeedRestraintIn))
-//					return true;
-//			}
-
-			if (CheckSpeedRestraint (TruncFloat (RBSpeed), SpeedRestraintIn))
+			if (CheckSpeedRestraint (TruncFloat (RBFlatSpeed), SpeedRestraintIn))
 				return true;
 			else
 				return false;
@@ -207,9 +171,7 @@ namespace LBActionSystem
 
 		public bool bHasPropperTransferOutSpeed()
 		{
-//			if (Vector3.Angle (rigidbody.transform.forward, RBSpeedDir) > 5.0f)
-//				return true;
-			if (CheckSpeedRestraint(TruncFloat(RBSpeed), SpeedRestraintOut))
+			if (CheckSpeedRestraint(TruncFloat(RBFlatSpeed), SpeedRestraintOut))
 				return true;
 
 			return false;
@@ -230,8 +192,7 @@ namespace LBActionSystem
 
 			return false;
 		}
-
-
+			
 		public bool bHasControlImpulse()
 		{
 			if (TruncFloat (MovementSpeed) > 0)
@@ -240,28 +201,44 @@ namespace LBActionSystem
 				return false;
 		}
 
-//		protected bool bHasPropperOutTransferSpeed()
-//		{
-//			if (Vector3.Angle (rigidbody.transform.forward, rigidbody.velocity) > 5.0f)
-//				return true;
-//			
-//			if (CheckSpeedRestraint(rigidbody.velocity.magnitude, InTransferSpeed))
-//				return true;
-//
-//			return false;
-//		}
+		public override void SetMovementDir (Vector3 _dir)
+		{
+			if (!bBlockExternalDir)
+				base.SetMovementDir (_dir);
+		}
 
+		public override void SetMovementSpeed (float _speed)
+		{
+			if (!bBlockExternalSpeed)
+				base.SetMovementSpeed (_speed);
+		}
 
 		public virtual void SetBaseMovementSpeed(float _basespd)
 		{
 			BaseMovementSpeed = _basespd;
 		}
 
+		public override LBActionPerformanceTypes ActionPerfomacneType
+		{
+			get 
+			{
+				return PerformanceType;
+			}
+		}
+
+		public override LBAnimationTransitionTypes AnimationTrasnitionType
+		{
+			get
+			{
+				return AnimTransitionType;
+			}
+		}
+
 		public override LBAction Duplicate ()
 		{
-			LBCharacterMovementAction dup;
+			LBCharacterGernericWalkAction dup;
 
-			dup = (LBCharacterWalkAction)CreateInstance(this.GetType());
+			dup = (LBCharacterGernericWalkAction)CreateInstance(this.GetType());
 			DuplicateProperties (dup);
 
 			return dup;
@@ -271,20 +248,31 @@ namespace LBActionSystem
 		{
 			base.DuplicateProperties (dup);
 
-			((LBCharacterWalkAction)dup).bUseRestraintSpeedIn = bUseRestraintSpeedIn;
-			((LBCharacterWalkAction)dup).SpeedRestraintIn = SpeedRestraintIn;
-			((LBCharacterWalkAction)dup).bUseRestraintSpeedOut = bUseRestraintSpeedOut;
-			((LBCharacterWalkAction)dup).SpeedRestraintOut = SpeedRestraintOut;
+			((LBCharacterGernericWalkAction)dup).PerformanceType = PerformanceType;
+			((LBCharacterGernericWalkAction)dup).AnimTransitionType = AnimTransitionType;
 
-			((LBCharacterWalkAction)dup).bUseRestraintDirectionIn = bUseRestraintDirectionIn;
-			((LBCharacterWalkAction)dup).DirectionRestraintIn = DirectionRestraintIn;
-			((LBCharacterWalkAction)dup).bUseRestraintDirectionOut = bUseRestraintDirectionOut;
-			((LBCharacterWalkAction)dup).DirectionRestraintOut = DirectionRestraintOut;
+			((LBCharacterGernericWalkAction)dup).bUseRestraintSpeedIn = bUseRestraintSpeedIn;
+			((LBCharacterGernericWalkAction)dup).SpeedRestraintIn = SpeedRestraintIn;
+			((LBCharacterGernericWalkAction)dup).bUseRestraintSpeedOut = bUseRestraintSpeedOut;
+			((LBCharacterGernericWalkAction)dup).SpeedRestraintOut = SpeedRestraintOut;
 
-			((LBCharacterWalkAction)dup).BaseMovementSpeed = BaseMovementSpeed;
-			((LBCharacterWalkAction)dup).BaseRotationSpeed = BaseRotationSpeed;
-			((LBCharacterWalkAction)dup).MovementAcceleration = MovementAcceleration;
+			((LBCharacterGernericWalkAction)dup).bUseRestraintDirectionIn = bUseRestraintDirectionIn;
+			((LBCharacterGernericWalkAction)dup).DirectionRestraintIn = DirectionRestraintIn;
+			((LBCharacterGernericWalkAction)dup).bUseRestraintDirectionOut = bUseRestraintDirectionOut;
+			((LBCharacterGernericWalkAction)dup).DirectionRestraintOut = DirectionRestraintOut;
+
+			((LBCharacterGernericWalkAction)dup).BaseMovementSpeed = BaseMovementSpeed;
+			((LBCharacterGernericWalkAction)dup).BaseRotationSpeed = BaseRotationSpeed;
+			((LBCharacterGernericWalkAction)dup).MovementAcceleration = MovementAcceleration;
+
+			((LBCharacterGernericWalkAction)dup).bBlockExternalSpeed = bBlockExternalSpeed;
+			((LBCharacterGernericWalkAction)dup).bBlockExternalDir = bBlockExternalDir;
+
+			((LBCharacterGernericWalkAction)dup).bNeedsControlImpulse = bNeedsControlImpulse;
+			((LBCharacterGernericWalkAction)dup).bPreserveSpeed = bPreserveSpeed;
+			((LBCharacterGernericWalkAction)dup).bAutoDetectInputSpeed = bAutoDetectInputSpeed;
 		}
+	
 	
 	}
 }

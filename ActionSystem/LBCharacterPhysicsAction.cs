@@ -163,6 +163,21 @@ namespace LBActionSystem
 			}
 		}
 
+		public float RBFlatSpeed
+		{
+			get 
+			{
+				return (new Vector3(rigidbody.velocity.x, 0, rigidbody.velocity.z)).magnitude;	
+			}
+
+			protected set
+			{
+				Vector3 v; 
+				v = new Vector3(rigidbody.velocity.x, 0, rigidbody.velocity.z);
+				rigidbody.velocity = v.normalized * value;
+			}
+		}
+
 		public Vector3 RBSpeedDir
 		{
 			get 
@@ -173,6 +188,19 @@ namespace LBActionSystem
 			protected set
 			{
 				rigidbody.velocity = value.normalized * rigidbody.velocity.magnitude;
+			}
+		}
+
+		public Vector3 RBFlatSpeedDir
+		{
+			get 
+			{
+				return (new Vector3(rigidbody.velocity.x, 0, rigidbody.velocity.z)).normalized;	
+			}
+
+			protected set
+			{
+				rigidbody.velocity = (new Vector3(value.x, 0 , value.z)).normalized * RBFlatSpeed + new Vector3(0, rigidbody.velocity.y,0);
 			}
 		}
 
@@ -194,6 +222,11 @@ namespace LBActionSystem
 			get 
 			{
 				return rigidbody.transform.forward;	
+			}
+
+			set 
+			{
+				rigidbody.rotation = Quaternion.LookRotation (value);
 			}
 		}
 

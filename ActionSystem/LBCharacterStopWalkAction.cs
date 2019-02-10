@@ -22,17 +22,17 @@ namespace LBActionSystem
 			return true;
 		}
 
-		//by default succeeds after animations has finished
-		protected virtual bool CheckIfActionSucceed ()
-		{
-			if (AnimationName == string.Empty)
-				return true;
-
-			if ((AnimationTime >= 1) &&  (ActionPerfomacneType == LBActionPerformanceTypes.PerformOnce || ActionPerfomacneType == LBActionPerformanceTypes.PerformOnceModal))
-				return  true;
-
-			return false;
-		}
+//		//by default succeeds after animations has finished
+//		protected virtual bool CheckIfActionSucceed ()
+//		{
+//			if (AnimationName == string.Empty)
+//				return true;
+//
+//			if ((AnimationTime >= 1) &&  (ActionPerfomacneType == LBActionPerformanceTypes.PerformOnce || ActionPerfomacneType == LBActionPerformanceTypes.PerformOnceModal))
+//				return  true;
+//
+//			return false;
+//		}
 
 //		protected bool CheckTransferOutCondition(LBAction _other)
 //		{
@@ -50,14 +50,24 @@ namespace LBActionSystem
 //				return false;
 //		}
 
-		protected bool CheckTransferInCondition(LBAction _other)
+		protected override bool CheckTransferConditions(LBAction _other, LBActionTransitTypes _transit, LBActionTransitDirection _dir) // нужно добавить проверку на наличие связи?
 		{
-			LBCharacterWalkAction walk = (LBCharacterWalkAction)_other;
+			if (_dir == LBActionTransitDirection.In)
+			{
+				return bCanStopWalk(_other) && bHasWalkableFloor();
+			}
+			else
+			{
+				return true;
+			}
+		}
 
-			if (walk != null)
+		protected bool bCanStopWalk(LBAction _other)
+		{
+			if (_other is LBCharacterWalkAction)
 			{
 				// we want to start this action only if previous has lost control impulse
-				if (!walk.bHasControlImpulse ())
+				if (!((LBCharacterWalkAction)_other).bHasControlImpulse ())
 					return true;
 			}
 			else
@@ -66,18 +76,6 @@ namespace LBActionSystem
 			return false;
 		}
 
-		protected override bool CheckTransferConditions(LBAction _other, LBActionTransitTypes _transit, LBActionTransitDirection _dir) // нужно добавить проверку на наличие связи?
-		{
-			if (_dir == LBActionTransitDirection.In)
-			{
-				return CheckTransferInCondition(_other);
-			}
-			else
-			{
-					return true;
-			}
-		}
-			
 		//checks condition to be value if toggle is true
 		protected bool CheckCondition(bool toggle, bool condition, bool value)
 		{

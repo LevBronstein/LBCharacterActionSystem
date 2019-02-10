@@ -14,13 +14,14 @@ namespace LBActionSystem
 	/// <summary>
 	/// This enum briefly describes velocity vector direction in local system
 	/// </summary>
-//	public enum LBVectorDirectionTypes
-//	{
-//		Zero,
-//		ZAxis,
-//		XAxis,
-//		YAxis
-//	}
+	/// 
+	public enum LBAxisTypes
+	{
+		XAxis,
+		YAxis,
+		ZAxis
+	}
+
 
 //	public struct LBMovementTransferCondition
 //	{
@@ -48,7 +49,15 @@ namespace LBActionSystem
 		public Vector3 MovementDir;
 		public float MovementSpeed;
 
+		//Animation paramteres' names in the animator
+		public string CharVelocityParamName = "CharVelocityNorm";
+		public string CharDeltaRotXParamName = "CharDeltaRotXNorm";
+		public string CharDeltaRotYParamName = "CharDeltaRotYNorm";
+		public string CharDeltaRotZParamName = "CharDeltaRotYNorm";
+
 		protected Vector3 orig_velocity;
+
+		protected Vector3 LastVel;
 
 		protected virtual void PerformMovement ()
 		{
@@ -57,11 +66,20 @@ namespace LBActionSystem
 				rigidbody.rotation = Quaternion.LookRotation (MovementDir);
 		}
 
+		protected virtual void UpdateSliders()
+		{
+			SetVelocityParam (RBSpeedVector.magnitude);
+			SetDeltaRotParam (Vector3.SignedAngle (LastVel, RBSpeedVector, Vector3.right), LBAxisTypes.XAxis);
+			SetDeltaRotParam (Vector3.SignedAngle (LastVel, RBSpeedVector, Vector3.up), LBAxisTypes.YAxis);
+			SetDeltaRotParam (Vector3.SignedAngle (LastVel, RBSpeedVector, Vector3.forward), LBAxisTypes.ZAxis);
+		}
+
 		protected override void TickActive ()
 		{
 			// we can move only when our action is active
 			base.TickActive ();
 			PerformMovement ();
+			UpdateSliders ();
 		}
 
 		public virtual void SetMovementSpeed(float _speed)
@@ -101,6 +119,80 @@ namespace LBActionSystem
 			}
 		}
 
+		protected void SetVelocityParam(float value)
+		{
+			if (bParamExists(CharVelocityParamName))
+				animator.SetFloat (CharVelocityParamName, value);
+		}
+
+		protected float GetVelocityParam()
+		{
+			if (bParamExists (CharVelocityParamName))
+				return animator.GetFloat (CharVelocityParamName);
+			else
+				return 0;
+		}
+			
+		protected void SetDeltaRotParam(float value, LBAxisTypes axis = LBAxisTypes.YAxis)
+		{
+			switch (axis)
+			{
+				case LBAxisTypes.XAxis:
+					if (bParamExists (CharDeltaRotXParamName))
+						animator.SetFloat (CharDeltaRotXParamName, value);
+					break;
+				case LBAxisTypes.YAxis:
+					if (bParamExists (CharDeltaRotYParamName))
+						animator.SetFloat (CharDeltaRotYParamName, value);
+					break;
+				case LBAxisTypes.ZAxis:
+					if (bParamExists (CharDeltaRotZParamName))
+						animator.SetFloat (CharDeltaRotZParamName, value);
+					break;
+				default:
+					break;
+			}
+		}
+
+		protected float GetDeltaRotParam(LBAxisTypes axis = LBAxisTypes.YAxis)
+		{
+			switch (axis)
+			{
+			case LBAxisTypes.XAxis:
+				if (bParamExists (CharDeltaRotXParamName))
+					return animator.GetFloat (CharDeltaRotXParamName);
+				break;
+			case LBAxisTypes.YAxis:
+				if (bParamExists (CharDeltaRotYParamName))
+					return animator.GetFloat (CharDeltaRotYParamName);
+				break;
+			case LBAxisTypes.ZAxis:
+				if (bParamExists (CharDeltaRotZParamName))
+					return animator.GetFloat (CharDeltaRotZParamName);
+				break;
+			default:
+				break;
+			}
+
+			return 0;
+		}
+
+		bool bParamExists(string param)
+		{
+			int i;
+
+			if (animator != null)
+			{
+				for (i = 0; i < animator.parameters.Length; i++)
+				{
+					if (animator.parameters [i].name == param)
+						return true;
+				}
+			}
+
+			return false;
+		}
+
 		public override LBAction Duplicate ()
 		{
 			LBCharacterMovementAction dup;
@@ -117,6 +209,10 @@ namespace LBActionSystem
 
 			((LBCharacterMovementAction)dup).MovementDir = MovementDir;
 			((LBCharacterMovementAction)dup).MovementSpeed = MovementSpeed;
+			((LBCharacterMovementAction)dup).CharVelocityParamName = CharVelocityParamName;
+			((LBCharacterMovementAction)dup).CharDeltaRotXParamName = CharDeltaRotXParamName;
+			((LBCharacterMovementAction)dup).CharDeltaRotYParamName = CharDeltaRotYParamName;
+			((LBCharacterMovementAction)dup).CharDeltaRotZParamName = CharDeltaRotZParamName;
 		}
 
 //		protected override void DuplicateProperties(LBAction dup)

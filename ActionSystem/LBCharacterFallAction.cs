@@ -7,7 +7,8 @@ namespace LBActionSystem
 	[CreateAssetMenu (fileName = "NewCharacterFallAction", menuName = "LBActionSystem/CharacterFallAction")]
 	public class LBCharacterFallAction : LBCharacterMovementAction 
 	{
-		public bool bPreserveSpeed;
+		public bool bPreserveFlatSpeed;
+		public float MaxFlatSpeed = 1;
 
 		protected Vector3 origvel;
 
@@ -15,16 +16,15 @@ namespace LBActionSystem
 		{
 			base.Activate (_prev, _transit);
 
-			if (bPreserveSpeed)
+			if (bPreserveFlatSpeed)
 			{
-				origvel = RBSpeedVector;
+				origvel = new Vector3 (RBSpeedVector.x, 0, RBSpeedVector.z);
 			}
 		}
-
-
+			
 		protected override void PerformMovement ()
 		{
-			if (bPreserveSpeed)
+			if (bPreserveFlatSpeed)
 			{
 				RBSpeedVector = origvel + Physics.gravity; // what if we have some other physic forces
 			}
@@ -59,6 +59,24 @@ namespace LBActionSystem
 			}
 		}
 
+		protected override void UpdateSliders()
+		{
+			base.UpdateSliders ();
+
+			if (MaxFlatSpeed !=0)
+				SetVelocityParam ((new Vector3(RBSpeedVector.x, 0, RBSpeedVector.z)).magnitude / MaxFlatSpeed);
+			else 
+				SetVelocityParam (0);
+		}
+
+		public override LBAnimationTransitionTypes AnimationTrasnitionType
+		{
+			get
+			{
+				return LBAnimationTransitionTypes.Crossfade;
+			}
+		}
+
 		public override LBAction Duplicate ()
 		{
 			LBCharacterFallAction dup;
@@ -73,7 +91,8 @@ namespace LBActionSystem
 		{
 			base.DuplicateProperties (dup);
 
-			((LBCharacterFallAction)dup).bPreserveSpeed = bPreserveSpeed;
+			((LBCharacterFallAction)dup).bPreserveFlatSpeed = bPreserveFlatSpeed;
+			((LBCharacterFallAction)dup).MaxFlatSpeed = MaxFlatSpeed;
 		}
 
 	}
