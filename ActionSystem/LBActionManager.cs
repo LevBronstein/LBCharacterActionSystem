@@ -21,9 +21,18 @@ namespace LBActionSystem
 		void Update ()
 		{
 			GeneralTick ();
-			PhysicsTick ();
 
 			DebugTest ();
+		}
+
+		void FixedUpdate()
+		{
+			PhysicsTick ();
+		}
+
+		void LateUpdate()
+		{
+			LateTick ();
 		}
 
 		protected void DebugTest ()
@@ -70,7 +79,7 @@ namespace LBActionSystem
 
 			for (i = 0; i < Actions.Length; i++)
 			{
-				if (Actions[i].ActionTick == LBActionTickTypes.GeneralTick)
+				if (Actions[i].TickType == LBActionTickTypes.GeneralTick)
 					Actions [i].Tick ();
 			}
 		}
@@ -81,11 +90,21 @@ namespace LBActionSystem
 
 			for (i = 0; i < Actions.Length; i++)
 			{
-				if (Actions[i].ActionTick == LBActionTickTypes.PhysicsTick)
+				if (Actions[i].TickType == LBActionTickTypes.PhysicsTick)
 					Actions [i].Tick ();
 			}
 		}
+			
+		protected virtual void LateTick ()
+		{
+			int i;
 
+			for (i = 0; i < Actions.Length; i++)
+			{
+				if (Actions[i].TickType == LBActionTickTypes.LateTick)
+					Actions [i].Tick ();
+			}
+		}
 		//		protected bool CheckActivationTransitive (LBTransitiveAction action)
 		//		{
 		//

@@ -160,7 +160,7 @@ namespace LBActionSystem
 			}
 		}
 
-		public virtual LBActionTickTypes ActionTick 
+		public virtual LBActionTickTypes TickType 
 		{
 			get 
 			{

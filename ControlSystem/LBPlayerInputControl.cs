@@ -11,6 +11,13 @@ namespace LBAControlSystem
 
 		Transform coords;
 
+		protected override void Start()
+		{
+			base.Start ();
+			if (TransformBase == null)
+				TransformBase = gameObject;
+		}
+
 		protected override void PerformControl()
 		{
 			Vector3 v, x, z;

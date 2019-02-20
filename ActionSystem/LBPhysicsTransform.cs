@@ -4,9 +4,19 @@ using UnityEngine;
 
 namespace LBActionSystem
 {
-	//[CreateAssetMenu (fileName = "NewMovementAction", menuName = "LBActionSystem/MovementAction")]
-	public class LBCharacterPhysicsAction : LBCharacterAnimatedAction
+	public enum LBCoordinateSystem
 	{
+		World,
+		Parent,
+		Local
+	}
+
+	public class LBPhysicsTransform : LBTransitiveAction
+	{
+		public LBActionStates InitialState = LBActionStates.Disabled;
+
+		public LBCoordinateSystem Coordinates = LBCoordinateSystem.Local;
+		//protected GameObject transformbase;
 		protected Rigidbody rigidbody;
 
 		public override bool Init (GameObject parentgameobject, LBActionManager manager)
@@ -19,8 +29,28 @@ namespace LBActionSystem
 			if (rigidbody == null)
 				return false;
 
+			if (InitialState == LBActionStates.Active)
+				ActivateAction ();
+
 			return true;
 		}
+
+//		protected Transform GetTransformBase()
+//		{
+//			switch (Coordinates)
+//			{
+//			case LBCoordinateSystem.Local:
+//				transformbase = rigidbody.gameObject.transform;
+//				break;
+//			case LBCoordinateSystem.Parent: 
+//				transformbase = rigidbody.gameObject.transform.parent;
+//				break;
+//			case LBCoordinateSystem.World:
+//				transformbase = rigidbody.gameObject.transform.root;
+//				default:
+//					break;
+//			}
+//		}
 
 		protected virtual void TrySelfActivate()
 		{
@@ -145,11 +175,6 @@ namespace LBActionSystem
 			return value;
 		}
 			
-//		protected float SingedAngle(Vector3 v1, Vector3 v2, Vector3 n)
-//		{
-//			return Mathf.Atan2 (Vector3.Dot (n, Vector3.Cross (v1, v2)), Vector3.Dot (v1, v2) * Mathf.Rad2Deg);
-//		}
-
 		public float RBSpeed
 		{
 			get 
@@ -232,9 +257,9 @@ namespace LBActionSystem
 
 		public override LBAction Duplicate ()
 		{
-			LBCharacterPhysicsAction dup;
+			LBPhysicsTransform dup;
 
-			dup = (LBCharacterPhysicsAction)CreateInstance(this.GetType());
+			dup = (LBPhysicsTransform)CreateInstance(this.GetType());
 			DuplicateProperties (dup);
 
 			return dup;
@@ -244,9 +269,8 @@ namespace LBActionSystem
 		{
 			base.DuplicateProperties (dup);
 
-//			((LBTransPhysicsAction)dup).MovementDir = MovementDir;
-//			((LBTransPhysicsAction)dup).MovementSpeed = MovementSpeed;
-		}
-
+			((LBPhysicsTransform)dup).InitialState = InitialState;
+			((LBPhysicsTransform)dup).Coordinates = Coordinates;
+		} 
 	}
 }

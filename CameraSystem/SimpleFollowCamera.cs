@@ -7,29 +7,39 @@ public class SimpleFollowCamera : MonoBehaviour
 	public GameObject Target;
 	//public Vector3 Offset = Vector3.forward;
 
-	protected GameObject target;
-	protected Vector3 offset;
+	public Vector3 OrbitOffset;
+	public float OrbitRadius;
 
-	// Use this for initialization
+	protected GameObject target;
+	protected float rotx, roty, rotz;
+
 	void Start ()
 	{
-		offset = transform.position - Target.transform.position;
 		target = Target;
 	}
-	
+
 	// Update is called once per frame
 	void Update ()
 	{
 		if (target != Target)
 		{
-			offset = transform.position - Target.transform.position;
 			target = Target;
 		}
 
 		if (Target!=null && Target.transform != null)
 		{
-			transform.position = Target.transform.position + offset;
-			//transform.rotation = Quaternion.LookRotation (transform.position - Target.transform.position);
+			gameObject.transform.position = Target.transform.position + OrbitOffset + Quaternion.Euler (rotx, roty, 0) * Vector3.forward * OrbitRadius;
+			gameObject.transform.rotation = Quaternion.LookRotation ((Target.transform.position + OrbitOffset) - gameObject.transform.position);
+
 		}
+
+		ControlCamera ();
 	}
+
+	void ControlCamera()
+	{
+		rotx = rotx + Input.GetAxis ("ViewRotationVer");
+		roty = roty + Input.GetAxis ("ViewRotationHor");
+	}
+
 }

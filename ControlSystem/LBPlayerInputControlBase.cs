@@ -10,7 +10,7 @@ namespace LBAControlSystem
 	{
 		protected LBActionManager m;
 
-		void Start ()
+		protected virtual void Start ()
 		{
 			m = GetComponent<LBActionManager> ();
 		}
