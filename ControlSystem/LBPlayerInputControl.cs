@@ -49,6 +49,12 @@ namespace LBAControlSystem
 				JumpInPlace ();
 				JumpInMotion ();
 			}
+
+			v = Vector3.zero;
+			v.x = Input.GetAxisRaw ("RotationHorAux");
+			v.y = Input.GetAxisRaw ("RotationVerAux");
+
+			RotateHead (v * 4);
 		}
 	
 		void StartWalk(Vector3 v)
@@ -156,6 +162,16 @@ namespace LBAControlSystem
 
 			if (jmp != null)
 				jmp.ActivateAction ();
+		}
+
+		void RotateHead(Vector3 v)
+		{
+			LBPhysicsOffset offs;
+
+			offs = (LBPhysicsOffset)m.FindAction ("HeadRotation");
+
+			if (offs != null)
+				offs.OffsetRotation += v;
 		}
 	
 	}

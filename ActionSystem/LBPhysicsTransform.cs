@@ -11,13 +11,25 @@ namespace LBActionSystem
 		Local
 	}
 
+	public enum LBTransformTool
+	{
+		Transform,
+		RigidBody,
+		Velocity
+	}
+
 	public class LBPhysicsTransform : LBTransitiveAction
 	{
 		public LBActionStates InitialState = LBActionStates.Disabled;
 
 		public LBCoordinateSystem Coordinates = LBCoordinateSystem.Local;
+
+		public LBActionTickTypes TickOrder; 
+
+		public LBTransformTool TransformTool;
 		//protected GameObject transformbase;
 		protected Rigidbody rigidbody;
+		protected GameObject gameobject;
 
 		public override bool Init (GameObject parentgameobject, LBActionManager manager)
 		{
@@ -25,8 +37,12 @@ namespace LBActionSystem
 				return false;
 
 			rigidbody = parent.GetComponent<Rigidbody> ();
+			gameobject = parent;
 
-			if (rigidbody == null)
+			if (TransformTool == LBTransformTool.RigidBody && rigidbody == null)
+				return false;
+
+			if (TransformTool == LBTransformTool.Transform && gameobject == null)
 				return false;
 
 			if (InitialState == LBActionStates.Active)
@@ -96,7 +112,7 @@ namespace LBActionSystem
 		{
 			get 
 			{
-				return LBActionTickTypes.PhysicsTick;
+				return TickOrder;
 			}
 		}
 
@@ -271,6 +287,8 @@ namespace LBActionSystem
 
 			((LBPhysicsTransform)dup).InitialState = InitialState;
 			((LBPhysicsTransform)dup).Coordinates = Coordinates;
+			((LBPhysicsTransform)dup).TickOrder = TickOrder;
+			((LBPhysicsTransform)dup).TransformTool = TransformTool;
 		} 
 	}
 }

@@ -28,11 +28,19 @@ namespace LBActionSystem
 			{
 				GameObject p = FindChild (parent, OverridenParent);
 
-				if (p!=null)
-					rigidbody = p.GetComponent<Rigidbody> ();
+				if (p != null)
+				{
+					if (TransformTool == LBTransformTool.RigidBody)
+						rigidbody = p.GetComponent<Rigidbody> ();
+					else
+						gameobject = p;
+				}
 			}
 
-			if (rigidbody == null)
+			if (TransformTool == LBTransformTool.RigidBody && rigidbody == null)
+				return false;
+
+			if (TransformTool == LBTransformTool.Transform && gameobject == null)
 				return false;
 
 			return true;
@@ -49,42 +57,69 @@ namespace LBActionSystem
 
 		protected virtual void PerformMovement ()
 		{
-			if (rigidbody != null)
+			if (TransformTool == LBTransformTool.Transform)
 			{
-				switch (Coordinates) 
-				{
-					case LBCoordinateSystem.Local:
-						rigidbody.MovePosition (rigidbody.transform.TransformPoint (Position));
-						break;
-					case LBCoordinateSystem.Parent:
-						rigidbody.MovePosition (rigidbody.transform.parent.TransformPoint (Position));
-						break;
-					case LBCoordinateSystem.World:
-					default:
-						rigidbody.MovePosition (Position);
-						break;
-				}	
+				MoveByTransform ();
 			}
+		}
+
+		protected virtual void MoveByTransform()
+		{			
+			switch (Coordinates)
+			{
+				case LBCoordinateSystem.Local:
+					gameobject.transform.position = gameobject.transform.TransformPoint (Position);
+					break;
+				case LBCoordinateSystem.Parent:
+					gameobject.transform.position = gameobject.transform.parent.TransformPoint (Position);
+					break;
+				case LBCoordinateSystem.World:
+				default:
+					gameobject.transform.position = Position;
+					break;
+			}	
+		}
+			
+		protected virtual void MoveByRigidBody()
+		{	
+			switch (Coordinates)
+			{
+				case LBCoordinateSystem.Local:
+					rigidbody.MovePosition (gameobject.transform.TransformPoint (Position));
+					break;
+				case LBCoordinateSystem.Parent:
+					rigidbody.MovePosition (gameobject.transform.parent.TransformPoint (Position));
+					break;
+				case LBCoordinateSystem.World:
+				default:
+					rigidbody.MovePosition (Position);
+					break;
+			}	
 		}
 
 		protected virtual void PerformRotation ()
 		{
-			if (rigidbody != null)
+			if (TransformTool == LBTransformTool.Transform)
 			{
-				switch (Coordinates) 
-				{
-					case LBCoordinateSystem.Local:
-						rigidbody.transform.gameObject.transform.rotation = (Quaternion.LookRotation(rigidbody.transform.TransformDirection(Rotation)));
-						break;
-					case LBCoordinateSystem.Parent:
-						rigidbody.transform.gameObject.transform.rotation = Quaternion.LookRotation(rigidbody.transform.parent.TransformDirection(Rotation));
-						break;
-					case LBCoordinateSystem.World:
-					default:
-						rigidbody.transform.gameObject.transform.rotation =  Quaternion.LookRotation(Rotation);
-						break;
-				}	
+				RotateByTransform ();
 			}
+		}
+
+		protected virtual void RotateByTransform()
+		{
+			switch (Coordinates) 
+			{
+				case LBCoordinateSystem.Local:
+					gameobject.transform.rotation = (Quaternion.LookRotation(gameobject.transform.TransformDirection(Rotation)));
+					break;
+				case LBCoordinateSystem.Parent:
+					gameobject.transform.localRotation = Quaternion.Euler(Rotation);
+					break;
+				case LBCoordinateSystem.World:
+				default:
+					gameobject.transform.rotation = Quaternion.Euler(Rotation);
+					break;
+			}	
 		}
 
 		protected GameObject FindChild(GameObject p, string name)
@@ -108,12 +143,53 @@ namespace LBActionSystem
 			return null;
 		}
 
-		public override LBActionTickTypes TickType 
+		public Vector3 OffsetPosition
+		{
+			get
+			{
+				return Position;
+			}
+			set
+			{
+				Position = value;
+			}
+		}
+
+		public Vector3 OffsetRotation
+		{
+			get
+			{
+				return Rotation;
+			}
+			set
+			{
+				Rotation = value;
+			}
+		}
+
+		public bool TogglePosition
+		{
+			get
+			{
+				return bApplyPosition;
+			}
+			set
+			{
+				bApplyPosition = value;
+			}
+		}
+
+		public bool ToggleRotation
 		{
 			get 
 			{
-				return LBActionTickTypes.LateTick;
+				return bApplyRotation;
 			}
+			set 
+			{
+				bApplyRotation = value;
+			}
+
 		}
 
 		public override LBAction Duplicate ()

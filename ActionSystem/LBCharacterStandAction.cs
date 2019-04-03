@@ -13,7 +13,7 @@ namespace LBActionSystem
 		{
 			if (_dir == LBActionTransitDirection.In)
 			{
-				return bHasWalkableFloor () && bHasPropperSpeed();
+				return bHasWalkableFloor () && bHasPropperSpeed ();
 			}
 			else
 			{
@@ -37,7 +37,7 @@ namespace LBActionSystem
 			}
 		}
 
-		protected bool bHasPropperSpeed()
+		protected virtual bool bHasPropperSpeed()
 		{
 			if (TruncFloat(rigidbody.velocity.magnitude) == 0)
 				return true;
