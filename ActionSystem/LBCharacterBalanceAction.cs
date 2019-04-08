@@ -5,7 +5,7 @@ using UnityEngine;
 namespace LBActionSystem
 {
 	[CreateAssetMenu (fileName = "NewCharacterBalanceAction", menuName = "LBActionSystem/CharacterBalanceAction")]
-	public class LBCharacterBalanceActionn : LBCharacterStandAction
+	public class LBCharacterBalanceAction : LBCharacterStandAction
 	{
 		protected override bool CheckTransferConditions(LBAction _other, LBActionTransitTypes _transit, LBActionTransitDirection _dir) // нужно добавить проверку на наличие связи?
 		{
