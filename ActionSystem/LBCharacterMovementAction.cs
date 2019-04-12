@@ -92,7 +92,7 @@ namespace LBActionSystem
 			MovementDir = _dir;
 		}
 			
-		protected bool bHasWalkableFloor()
+		protected virtual bool bHasWalkableFloor()
 		{
 			Collider c;
 			RaycastHit hit;
